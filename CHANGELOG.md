@@ -8,6 +8,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 - MIT license, contributing guide and this changelog.
+- Docstrings on public backend functions, enforced by Ruff's `D1` rules (tests are exempt).
 
 ## [0.1.0] - 2026-10-08
 

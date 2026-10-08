@@ -28,6 +28,7 @@ if origins:
 
 @app.get("/health")
 def health() -> dict[str, str]:
+    """Report that the service is up, for CI smoke tests and hosting health checks."""
     return {"status": "ok"}
 
 
@@ -36,6 +37,7 @@ api = APIRouter(prefix="/api/v1")
 
 @api.get("/version")
 def version() -> dict[str, str]:
+    """Return the running backend version, so the frontend can show what it's connected to."""
     return {"version": VERSION}
 
 
