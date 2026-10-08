@@ -9,6 +9,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 - MIT license, contributing guide and this changelog.
 - Docstrings on public backend functions, enforced by Ruff's `D1` rules (tests are exempt).
+- Pre-commit hooks for mypy (backend), oxlint and Prettier (frontend), so type, lint and format problems are caught before pushing.
 
 ### Changed
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.

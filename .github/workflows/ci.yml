@@ -19,6 +19,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
       - name: Hooks (ruff, gitleaks secret scan, hygiene)
+        env:
+          # Already run by the backend and frontend jobs, with their environments installed.
+          SKIP: mypy,oxlint,prettier
         run: uvx pre-commit run --all-files --show-diff-on-failure
 
   backend:
