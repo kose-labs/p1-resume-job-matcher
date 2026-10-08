@@ -43,7 +43,8 @@ uvx pre-commit install
 | Lint | `uv run ruff check .` | `npm run lint` |
 | Format | `uv run ruff format --check .` | `npm run format:check` |
 | Type check | `uv run mypy` | `npm run typecheck` |
-| Tests | `uv run pytest` | `npm test` |
+| Tests | `uv run pytest` (includes coverage) | `npm test` |
+| Coverage (80% minimum) | shown by `uv run pytest` | `npm run test:coverage` |
 | Build | — | `npm run build` |
 
 CI (`.github/workflows/ci.yml`) runs these on every pull request, plus:

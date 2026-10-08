@@ -13,6 +13,7 @@ dev = [
     "httpx2>=2.13.1",
     "mypy>=1.11",
     "pytest>=8.3",
+    "pytest-cov>=7.1.0",
     "ruff>=0.6",
 ]
 
@@ -34,3 +35,13 @@ packages = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# Every test run measures coverage, locally and in CI.
+addopts = "--cov --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+# Floor, not target: raise it as the project grows, never lower it to make CI pass.
+fail_under = 80

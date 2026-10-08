@@ -41,8 +41,10 @@ jobs:
         run: uv run ruff format --check .
       - name: Type check
         run: uv run mypy
-      - name: Tests
+      - name: Tests (with coverage)
         run: uv run pytest
+      - name: Coverage summary
+        run: uv run coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
 
   frontend:
     runs-on: ubuntu-latest
@@ -63,8 +65,8 @@ jobs:
         run: npm run format:check
       - name: Type check
         run: npm run typecheck
-      - name: Tests
-        run: npm test
+      - name: Tests (with coverage)
+        run: npm run test:coverage
       - name: Build
         run: npm run build
 

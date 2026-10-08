@@ -10,6 +10,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - MIT license, contributing guide and this changelog.
 - Docstrings on public backend functions, enforced by Ruff's `D1` rules (tests are exempt).
 - Pre-commit hooks for mypy (backend), oxlint and Prettier (frontend), so type, lint and format problems are caught before pushing.
+- Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
 ### Changed
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
