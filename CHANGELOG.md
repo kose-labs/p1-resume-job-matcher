@@ -12,6 +12,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Pre-commit hooks for mypy (backend), oxlint and Prettier (frontend), so type, lint and format problems are caught before pushing.
 
 ### Changed
+- README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ## [0.1.0] - 2026-10-08
