@@ -10,6 +10,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - MIT license, contributing guide and this changelog.
 - Docstrings on public backend functions, enforced by Ruff's `D1` rules (tests are exempt).
 
+### Changed
+- Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added

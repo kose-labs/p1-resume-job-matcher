@@ -6,7 +6,7 @@ Starting point for every KoSe Labs project: a **FastAPI** backend (Python) and a
 
 ## Quickstart (no Docker needed)
 
-Prerequisites: Python 3.12, [uv](https://docs.astral.sh/uv/), Node 22.
+Prerequisites: Python 3.12, [uv](https://docs.astral.sh/uv/), Node 24 LTS (pinned in `frontend/.nvmrc`).
 
 **Backend** (terminal 1):
 ```bash
