@@ -21,4 +21,10 @@ describe('App', () => {
     render(<App />)
     expect(await screen.findByText(/Backend unreachable/)).toBeInTheDocument()
   })
+
+  it('shows an error when the API answers with an error status', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })))
+    render(<App />)
+    expect(await screen.findByText(/Backend unreachable/)).toBeInTheDocument()
+  })
 })
