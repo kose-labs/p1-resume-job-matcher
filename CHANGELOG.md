@@ -13,6 +13,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
 ### Changed
+- `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
