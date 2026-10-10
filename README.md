@@ -47,6 +47,17 @@ uvx pre-commit install
 | Coverage (80% minimum) | shown by `uv run pytest` | `npm run test:coverage` |
 | Build | — | `npm run build` |
 
+**After changing the API** (routes or models), regenerate the frontend's types, then commit both
+files. CI fails if either is out of date.
+```bash
+cd frontend
+npm run api:schema
+npm run api:types
+```
+`api:schema` exports `frontend/openapi.json` from the backend; `api:types` turns it into
+`src/api/schema.d.ts`. The generator runs with its own pinned TypeScript 5, because TypeScript 7
+no longer ships the compiler API it needs.
+
 CI (`.github/workflows/ci.yml`) runs these on every pull request, plus:
 - **pre-commit**: the hooks, including the **gitleaks** secret scan. It skips mypy, oxlint and Prettier because the backend and frontend jobs run those.
 - **docker**: builds the backend image and checks that `/health` answers. This is how we test Docker without needing it on our laptops.
