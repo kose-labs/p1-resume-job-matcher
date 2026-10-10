@@ -15,6 +15,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   server" state for cold starts, loading and error states, and the score, skills and evidence.
 - Frontend types generated from the backend's OpenAPI schema (`npm run api:schema`,
   `npm run api:types`); CI fails if the committed schema or types are out of date.
+- Deployment: Render Blueprint for the backend (deploys after CI passes on `main`) and a GitHub
+  Pages workflow for the frontend, with a deployment guide in `docs/deployment.md`.
 - Rate limit on `POST /api/v1/match`: 10 requests a minute per client, answered with 429 and
   `Retry-After` before the upload is read.
 - MIT license, contributing guide and this changelog.

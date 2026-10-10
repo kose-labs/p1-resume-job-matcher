@@ -90,6 +90,11 @@ Copy `.env.example` to `.env`. Never commit `.env`.
   rather than to everyone at once. Leave unset locally.
 - `VITE_API_URL`: the deployed backend URL for the production frontend build. Leave empty locally.
 
+## Deployment
+
+Frontend on GitHub Pages, backend on Render Free, both deployed automatically from `main`.
+One-time setup, configuration, rollback and troubleshooting: [docs/deployment.md](docs/deployment.md).
+
 ## Optional: Docker
 
 If you have Docker: `docker compose up --build` runs the backend on port 8000. Not required for development.
