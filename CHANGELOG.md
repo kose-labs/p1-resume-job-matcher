@@ -11,6 +11,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
   limit enforced while the upload arrives (413), PDF check by file content (415) and field
   validation (422). Uploads stay in memory, never on disk. Returns a labelled stub result until the
   model lands.
+- Frontend match form: job description and PDF upload with client-side checks, a "waking up the
+  server" state for cold starts, loading and error states, and the score, skills and evidence.
+- Frontend types generated from the backend's OpenAPI schema (`npm run api:schema`,
+  `npm run api:types`); CI fails if the committed schema or types are out of date.
 - Rate limit on `POST /api/v1/match`: 10 requests a minute per client, answered with 429 and
   `Retry-After` before the upload is read.
 - MIT license, contributing guide and this changelog.

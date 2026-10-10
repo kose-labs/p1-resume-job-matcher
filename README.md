@@ -22,7 +22,7 @@ cd frontend
 npm ci
 npm run dev
 ```
-App on http://localhost:5173. It should say **"Backend connected"**; the Vite dev server forwards `/api` calls to the backend, so no CORS setup is needed locally.
+App on http://localhost:5173. It should say **"Server ready."**; the Vite dev server forwards `/api` calls to the backend, so no CORS setup is needed locally.
 `npm ci` installs exactly what `package-lock.json` lists; use `npm install <package>` only when adding a dependency.
 
 **Once per clone**, after `uv sync` and `npm ci`, install the git hooks (Ruff, mypy, oxlint, Prettier, secret scanning, file hygiene):
@@ -46,6 +46,17 @@ uvx pre-commit install
 | Tests | `uv run pytest` (includes coverage) | `npm test` |
 | Coverage (80% minimum) | shown by `uv run pytest` | `npm run test:coverage` |
 | Build | — | `npm run build` |
+
+**After changing the API** (routes or models), regenerate the frontend's types, then commit both
+files. CI fails if either is out of date.
+```bash
+cd frontend
+npm run api:schema
+npm run api:types
+```
+`api:schema` exports `frontend/openapi.json` from the backend; `api:types` turns it into
+`src/api/schema.d.ts`. The generator runs with its own pinned TypeScript 5, because TypeScript 7
+no longer ships the compiler API it needs.
 
 CI (`.github/workflows/ci.yml`) runs these on every pull request, plus:
 - **pre-commit**: the hooks, including the **gitleaks** secret scan. It skips mypy, oxlint and Prettier because the backend and frontend jobs run those.
