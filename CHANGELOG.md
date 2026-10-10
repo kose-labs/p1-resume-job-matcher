@@ -7,6 +7,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `POST /api/v1/match` skeleton: request and response models from the API contract, a 5 MB CV
+  limit enforced while the upload arrives (413), PDF check by file content (415) and field
+  validation (422). Uploads stay in memory, never on disk. Returns a labelled stub result until the
+  model lands.
 - MIT license, contributing guide and this changelog.
 - Docstrings on public backend functions, enforced by Ruff's `D1` rules (tests are exempt).
 - Pre-commit hooks for mypy (backend), oxlint and Prettier (frontend), so type, lint and format problems are caught before pushing.
