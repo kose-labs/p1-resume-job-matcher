@@ -14,6 +14,7 @@ from pydantic import StringConstraints
 
 from app.limits import MAX_REQUEST_BYTES, BodySizeLimit, keep_uploads_in_memory, read_cv
 from app.matching import MatchService, get_match_service
+from app.ratelimit import RateLimit, match_limiter
 from app.schemas import ErrorResponse, MatchResponse
 
 VERSION = "0.1.0"
@@ -22,6 +23,8 @@ app = FastAPI(title="KoSe Labs service", version=VERSION)
 
 keep_uploads_in_memory()
 app.add_middleware(BodySizeLimit, max_bytes=MAX_REQUEST_BYTES)
+# Added last, so it runs first: over-limit clients are turned away before their upload is read.
+app.add_middleware(RateLimit, limiter=match_limiter, method="POST", path="/api/v1/match")
 
 # Production frontend (e.g. on Vercel) runs on another origin, so it needs CORS.
 # Locally the Vite proxy makes requests same-origin, so this list can stay empty.
@@ -62,6 +65,10 @@ JobDescription = Annotated[
     responses={
         413: {"model": ErrorResponse, "description": "CV over 5 MB (`file_too_large`)"},
         415: {"model": ErrorResponse, "description": "CV is not a PDF (`unsupported_file_type`)"},
+        429: {
+            "model": ErrorResponse,
+            "description": "Over 10 requests a minute from one client (`rate_limited`)",
+        },
     },
 )
 async def match(
