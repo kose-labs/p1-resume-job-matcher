@@ -30,11 +30,15 @@ app.add_middleware(RateLimit, limiter=match_limiter, method="POST", path="/api/v
 # Locally the Vite proxy makes requests same-origin, so this list can stay empty.
 origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 if origins:
+    # Keep this the last middleware added (the outermost), so the 413 and 429 responses from the
+    # limits above also carry CORS headers; otherwise the browser hides them from the frontend.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
+        # Browsers only let cross-origin JavaScript read a few standard headers unless listed here.
+        expose_headers=["Retry-After"],
     )
 
 

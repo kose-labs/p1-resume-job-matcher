@@ -36,3 +36,28 @@ def test_cors_allows_configured_origin(cors_app: FastAPI) -> None:
 def test_cors_rejects_other_origins(cors_app: FastAPI) -> None:
     response = TestClient(cors_app).get("/health", headers={"Origin": "https://evil.example"})
     assert "access-control-allow-origin" not in response.headers
+
+
+def test_errors_from_middleware_carry_cors_headers(cors_app: FastAPI) -> None:
+    # The size limit answers before the app; without CORS headers the browser hides the 413
+    # and the frontend could only say "couldn't reach the server".
+    client = TestClient(cors_app)
+    response = client.post(
+        "/api/v1/match",
+        headers={"Origin": ALLOWED, "Content-Length": str(10 * 1024 * 1024)},
+        content=b"",
+    )
+    assert response.status_code == 413
+    assert response.headers["access-control-allow-origin"] == ALLOWED
+
+
+def test_rate_limit_retry_after_is_readable_cross_origin(cors_app: FastAPI) -> None:
+    client = TestClient(cors_app)
+    files = {"cv": ("cv.pdf", b"%PDF-1.7\n", "application/pdf")}
+    data = {"job_description": "Backend engineer building REST APIs in Python. " * 4}
+    for _ in range(10):
+        client.post("/api/v1/match", headers={"Origin": ALLOWED}, files=files, data=data)
+    response = client.post("/api/v1/match", headers={"Origin": ALLOWED}, files=files, data=data)
+    assert response.status_code == 429
+    assert response.headers["access-control-allow-origin"] == ALLOWED
+    assert "retry-after" in response.headers["access-control-expose-headers"].lower()
