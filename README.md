@@ -22,7 +22,7 @@ cd frontend
 npm ci
 npm run dev
 ```
-App on http://localhost:5173. It should say **"Backend connected"**; the Vite dev server forwards `/api` calls to the backend, so no CORS setup is needed locally.
+App on http://localhost:5173. It should say **"Server ready."**; the Vite dev server forwards `/api` calls to the backend, so no CORS setup is needed locally.
 `npm ci` installs exactly what `package-lock.json` lists; use `npm install <package>` only when adding a dependency.
 
 **Once per clone**, after `uv sync` and `npm ci`, install the git hooks (Ruff, mypy, oxlint, Prettier, secret scanning, file hygiene):
