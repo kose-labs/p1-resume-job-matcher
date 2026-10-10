@@ -1,0 +1,22 @@
+# Render Blueprint for the backend API (ADR-0002: Render Free).
+# One-time setup and how deploys work: docs/deployment.md
+services:
+  - type: web
+    name: p1-resume-job-matcher-api
+    runtime: docker
+    plan: free
+    # Closest Render region to both of us (Accra and Lille). Can't be changed after creation.
+    region: frankfurt
+    branch: main
+    rootDir: backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    # Deploy a commit on main only after its GitHub checks (CI) have passed.
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: CORS_ORIGINS
+        value: https://kose-labs.github.io
+      # Trust Render's proxy, so the rate limit sees each visitor's IP instead of the proxy's.
+      - key: FORWARDED_ALLOW_IPS
+        value: "*"
