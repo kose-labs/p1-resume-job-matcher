@@ -74,6 +74,9 @@ LICENSE           MIT
 
 Copy `.env.example` to `.env`. Never commit `.env`.
 - `CORS_ORIGINS`: comma-separated frontend URLs allowed to call the deployed API.
+- `FORWARDED_ALLOW_IPS`: set to `*` on Render. Uvicorn then takes the visitor's IP from the
+  proxy's `X-Forwarded-For` header, so the rate limit (10 matches a minute) applies per visitor
+  rather than to everyone at once. Leave unset locally.
 - `VITE_API_URL`: the deployed backend URL for the production frontend build. Leave empty locally.
 
 ## Optional: Docker
