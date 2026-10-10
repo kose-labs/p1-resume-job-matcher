@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Text preprocessing for CVs and job descriptions (`app.ml.preprocess`): cleanup of PDF and
+  job-board artefacts, sections, sentences, and a tokenizer that keeps tech names such as C++, C#,
+  .NET, Node.js and Go whole.
 - MIT license, contributing guide and this changelog.
 - Docstrings on public backend functions, enforced by Ruff's `D1` rules (tests are exempt).
 - Pre-commit hooks for mypy (backend), oxlint and Prettier (frontend), so type, lint and format problems are caught before pushing.
