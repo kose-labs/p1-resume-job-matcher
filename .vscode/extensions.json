@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "oxc.oxc-vscode",
+    "esbenp.prettier-vscode"
+  ]
+}

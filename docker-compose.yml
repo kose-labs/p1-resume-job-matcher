@@ -1,0 +1,9 @@
+# Optional: only for people who have Docker. Local dev does NOT require it (see README).
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
