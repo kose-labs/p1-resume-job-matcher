@@ -85,10 +85,16 @@ LICENSE           MIT
 
 Copy `.env.example` to `.env`. Never commit `.env`.
 - `CORS_ORIGINS`: comma-separated frontend URLs allowed to call the deployed API.
-- `FORWARDED_ALLOW_IPS`: set to `*` on Render. Uvicorn then takes the visitor's IP from the
-  proxy's `X-Forwarded-For` header, so the rate limit (10 matches a minute) applies per visitor
-  rather than to everyone at once. Leave unset locally.
+- `TRUSTED_PROXY_HOPS`: how many proxies in front of the app append to `X-Forwarded-For`, so the
+  rate limit (10 matches a minute) finds each visitor's real IP. `0` locally; set on Render as
+  described in [docs/deployment.md](docs/deployment.md). Don't set Uvicorn's `FORWARDED_ALLOW_IPS=*`:
+  it trusts the left-most entry, which clients can forge.
 - `VITE_API_URL`: the deployed backend URL for the production frontend build. Leave empty locally.
+
+## Deployment
+
+Frontend on GitHub Pages, backend on Render Free, both deployed automatically from `main`.
+One-time setup, configuration, rollback and troubleshooting: [docs/deployment.md](docs/deployment.md).
 
 ## Optional: Docker
 
