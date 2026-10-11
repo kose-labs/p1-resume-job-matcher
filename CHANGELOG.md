@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Evaluation metrics in `app.ml.metrics` (quadratic weighted κ, tie-aware Spearman ρ), tested in CI
+  against scikit-learn and SciPy reference values; `scripts/j2-pairs/evaluate.py` uses them.
 - Text preprocessing for CVs and job descriptions (`app.ml.preprocess`): cleanup of PDF and
   job-board artefacts (including pdfplumber's `(cid:N)` glyph placeholders), sections, sentences,
   and a tokenizer that keeps tech names such as C++, C#, .NET, Node.js and Go whole.
