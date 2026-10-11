@@ -5,6 +5,7 @@ description = "KoSe Labs service backend"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.142.4",
+    "pdfplumber>=0.11.10",
     "python-multipart>=0.0.32",
     "uvicorn[standard]>=0.54.0",
 ]
@@ -13,8 +14,10 @@ dependencies = [
 dev = [
     "httpx2>=2.13.1",
     "mypy>=1.11",
+    "pillow>=12.3.0",
     "pytest>=8.3",
     "pytest-cov>=7.1.0",
+    "reportlab>=5.0.1",
     "ruff>=0.6",
 ]
 

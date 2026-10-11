@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- CV text extraction from uploaded PDFs (ADR-0003): pdfplumber with a column split for two-column
+  CVs, and clear 422 errors for password-protected or damaged files (`pdf_unreadable`), more than
+  10 pages (`pdf_too_many_pages`) and scanned PDFs (`pdf_no_text`). Runs in a worker thread.
 - Text preprocessing for CVs and job descriptions (`app.ml.preprocess`): cleanup of PDF and
   job-board artefacts (including pdfplumber's `(cid:N)` glyph placeholders), sections, sentences,
   and a tokenizer that keeps tech names such as C++, C#, .NET, Node.js and Go whole.

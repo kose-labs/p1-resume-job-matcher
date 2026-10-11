@@ -11,8 +11,16 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import StringConstraints
+from starlette.concurrency import run_in_threadpool
 
-from app.limits import MAX_REQUEST_BYTES, BodySizeLimit, keep_uploads_in_memory, read_cv
+from app.extract import PdfError, extract_text
+from app.limits import (
+    MAX_REQUEST_BYTES,
+    ApiError,
+    BodySizeLimit,
+    keep_uploads_in_memory,
+    read_cv,
+)
 from app.matching import MatchService, get_match_service
 from app.ratelimit import RateLimit, match_limiter
 from app.schemas import ErrorResponse, MatchResponse
@@ -93,7 +101,12 @@ async def match(
     The CV is checked and kept in memory only; it is never stored or logged.
     """
     cv_pdf = await read_cv(cv)
-    return service.match(cv_pdf, job_description)
+    try:
+        # CPU-bound: run it in a worker thread so other requests (and /health) aren't blocked.
+        cv_text = await run_in_threadpool(extract_text, cv_pdf)
+    except PdfError as error:
+        raise ApiError(422, error.code, error.message) from error
+    return service.match(cv_text, job_description)
 
 
 app.include_router(api)
