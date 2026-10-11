@@ -4,7 +4,14 @@
 **ML lead:** Kobi · **Eng lead:** Semanu · **Security:** Semanu
 
 ## Problem (2–3 sentences)
-*Kobi (K1).*
+Students and early-career engineers send dozens of applications without knowing how well their CV
+actually fits each job, or which missing skills cost them the interview. Keyword-based screening
+tools give a number with no explanation. P1 scores a CV against one job description, shows the
+required skills it covers and misses, and points to the CV sentences behind the score, so the
+candidate knows what to fix.
+
+**Users:** job seekers tailoring a CV to a posting (primary); recruiters skimming a first fit
+(secondary, demo only, not for hiring decisions).
 
 ## Demo (what a recruiter sees in 30 s)
 Paste a job description, upload a CV as a PDF, press **Match**. Within a few seconds the page shows a
@@ -12,26 +19,74 @@ match score, the skills the CV covers and misses, and the CV sentences that back
 The CV is processed in memory and never stored.
 
 ## Scope (frozen on day 1)
-**In V1** (engineering side; Kobi adds the ML side):
+**In V1** (engineering and ML):
 - One page: JD text box + CV PDF upload → score, skills (matched / missing), evidence.
 - `POST /api/v1/match` as specified below, with validation, size limit and rate limit.
 - Text-based PDFs only (one or two columns); scanned PDFs rejected with a clear message.
 - Deployed: frontend on GitHub Pages, backend on Render Free (ADR-0002).
+- Matcher: TF-IDF baseline, then sentence embeddings over JD requirements × CV sentences; the
+  better one on the test set ships (ADR-0004).
+- Skill extraction from both texts with ESCO plus our own tech dictionary; matched / missing lists.
+- Evaluation on our own rated pairs (annotation protocol), reported in the model card with the
+  baseline next to it.
 
 **Out (→ V2 issues):**
 - DOCX and image (OCR) CVs.
 - Accounts, history or saving results.
 - Matching one CV against many jobs (or the reverse).
 - Languages other than English.
+- Fine-tuning or training our own model (V1 uses pretrained models only).
+- LLM-generated advice ("rewrite this bullet") and scoring with an LLM.
+- Weighting years of experience, education or location.
 
 ## Data
-*Kobi (K1, K3: ADR-0001).*
+Details and alternatives in **ADR-0001**.
+- **Evaluation corpus (K5):** 30 English JDs and 30 English CVs from the Djinni Recruitment Dataset
+  (MIT, anonymized, IT jobs 2020–2023), 5 of each from six fields (Python, Data Science, JavaScript,
+  Java, DevOps, QA). Built by one script from pinned dataset revisions; stored in `data/`
+  (git-ignored), never committed.
+- **Labels:** 120 CV–JD pairs rated 1–5 by both of us, following `research/annotation_protocol.md`.
+  Final label = mean of the two ratings. Split by JD: 10 JDs dev, 20 JDs test.
+- **Skill extraction labels (K9):** required skills hand-marked in 20 JDs (dev 8 / test 12).
+- **Skill vocabulary:** ESCO skills (EU taxonomy) plus a small tech dictionary we maintain
+  (C++, C#, Node.js, FastAPI… which ESCO names differently or lacks).
+- **PDF checks:** a few local-only PDFs from the Kaggle Resume Dataset and Semanu's synthetic fixtures.
 
 ## Approach
-*Kobi (K1).*
+Three steps, each measured against the previous one on the same pairs:
+
+1. **Preprocessing (K6).** Clean PDF artefacts (hyphenation at line breaks, bullets, ligatures),
+   protect tech tokens that naive tokenizers break (`C++`, `C#`, `.NET`, `Node.js`), split into
+   sections and sentences. Shared by every model, so differences come from the model only.
+2. **Baseline: TF-IDF + cosine similarity (K7).** Word 1–2-grams, vectorizer fitted once on the whole
+   corpus (not per pair), so IDF reflects how rare a term is across jobs and CVs. Cheap, explainable,
+   and the number every later model has to beat.
+3. **Sentence embeddings with chunking (K8).** Split the JD into requirement sentences and the CV
+   into sentences; embed both with a small pretrained model that fits in 512 MB (ONNX or static
+   embeddings, ADR-0004). For each requirement, take the best-matching CV sentence; the score is the
+   weighted mean of those best similarities, and the top pairs become the **evidence** list.
+   Catches paraphrases TF-IDF misses ("built REST services" vs "API development").
+4. **Skill extraction (K9).** Match ESCO skill labels and our dictionary in both texts (exact and
+   normalized forms). JD skills found in the CV → `matched`, the rest → `missing`.
+5. **Final score:** a weighted mix of the semantic score and skill coverage, weights tuned on dev only.
+
+**Why not an LLM or fine-tuning in V1:** 10 days, 512 MB RAM, and we want a score we can explain
+and evaluate. An LLM scorer is a V2 experiment against the same test set.
 
 ## Evaluation
-*Kobi (K1): Spearman ρ against our ratings, skill extraction F1, with numeric targets.*
+All ML numbers are on the **test** split (20 JDs, ~80 pairs), computed once per model version.
+
+| What | Metric | Target for V1 |
+|---|---|---|
+| **Match score** (main) | Spearman ρ between system score and our mean rating | **ρ ≥ 0.55** for the shipped model, and **≥ 0.10 above the TF-IDF baseline**, with a 95% bootstrap CI of the difference (resampling JDs) above 0 |
+| Baseline | Same metric for TF-IDF (K7) | Reported, no target: it's the reference |
+| Ceiling | Agreement between the two of us: quadratic weighted Cohen's κ | **κ ≥ 0.6** on the calibration batch (protocol). The model can't be judged more precisely than we agree |
+| **Skill extraction** | Precision, recall, micro F1 of JD skills vs hand labels | **F1 ≥ 0.70, precision ≥ 0.80** (a wrong "missing skill" misleads the user more than a skipped one) |
+| Evidence | Share of top-3 evidence pairs we judge relevant, on 10 test pairs | **≥ 2 of 3** on average |
+
+**Failure analysis:** the 10 pairs with the largest gap between score and rating get a written
+explanation in the model card (e.g. synonyms, short profiles, keyword stuffing).
+
 
 Engineering targets:
 - `/api/v1/match` answers in **under 3 s** for a 2-page CV on a warm Render Free instance.
@@ -146,6 +201,12 @@ which the generated client already understands.
 | Abuse of the public endpoint (large files, floods) | Low | Size, page and rate limits above |
 | CV text leaking through logs or errors | Low | Logging policy above, plus a test that a CV's text never appears in log output |
 | Render Free limits change or the service is suspended | Low | Same Dockerfile runs on another free host; frontend only needs a new `VITE_API_URL` |
+| Embeddings don't beat TF-IDF on our pairs | Medium | Ship the better model and report both honestly; try requirement-level chunking and skill-coverage weighting before switching models |
+| Our ratings disagree too much (κ < 0.6) | Medium | Sharpen the anchors and rate a second calibration batch; report κ next to ρ |
+| Too few rated pairs for a stable ρ | Medium | Bootstrap CIs on every number; rate more pairs from dev only if time allows |
+| Djinni profiles are shorter than real CVs, so results don't transfer | Medium | Say so in the data and model cards; spot-check on local PDF CVs |
+| ESCO misses or misnames tech skills | High | Our own tech dictionary on top of ESCO; F1 measured per source |
+| Bias: scores track protected attributes inferable from text | Low–Medium | Skills/experience text only, no demographic features; documented as a limitation and a research note |
 
 ## Milestones
 | Day | Milestone | Owner |
@@ -163,4 +224,8 @@ which the generated client already understands.
 a stable API contract and generating a typed client from it, model lifecycle and `def` vs `async`
 in FastAPI, rate limiting, CORS, and privacy-by-design for personal data.
 
-**Kobi (ML):** *K1.*
+**Kobi (ML):** text preprocessing for noisy documents, TF-IDF and cosine similarity (and why the
+vectorizer is fitted once on the corpus), sentence embeddings and chunking strategies, choosing a
+model under a memory budget, building an evaluation set (annotation protocol, inter-rater agreement
+with weighted κ, dev/test leakage), rank correlation and bootstrap confidence intervals, precision /
+recall / F1 for extraction, and honest failure analysis.
