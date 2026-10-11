@@ -39,6 +39,21 @@ is the Docker image on **Render Free**.
 2. The frontend shows **"Waking up the server…"**, then **"Server ready."**
 3. A match with a synthetic test PDF returns a result. Never test the live site with a real CV.
 
+## Reading the logs
+
+The API writes one JSON line per request, plus one per match, to Render's **Logs** tab:
+
+```json
+{"time": "...", "level": "INFO", "event": "request", "request_id": "3f9c2a1b7d04", "method": "POST", "path": "/api/v1/match", "status": 200, "duration_ms": 412.5}
+{"time": "...", "level": "INFO", "event": "match", "request_id": "3f9c2a1b7d04", "outcome": "ok", "cv_bytes": 48211, "pages": 2, "model": "stub"}
+```
+
+- Every response carries the same ID in an `X-Request-ID` header, so a user's report can be matched
+  to its log lines by searching for the ID.
+- `outcome` is `ok` or the error code (`pdf_no_text`, `pdf_unreadable`, `pdf_too_many_pages`).
+- **No CV or job description text and no IP addresses are ever logged** (a test enforces the list of
+  allowed fields). Uvicorn's own access log is off for the same reason (`--no-access-log`).
+
 ## Rate limit: finding the proxy count
 
 Render puts several proxies in front of the app, and it keeps any `X-Forwarded-For` value the

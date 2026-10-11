@@ -35,6 +35,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
 ### Security
+- Structured JSON logs with a request ID (also returned as `X-Request-ID`), method, path, status,
+  duration, CV size, page count and outcome code, and nothing else: tests send marked CV and job
+  description text and check it never reaches a log line. Uvicorn's access log, which records
+  client IPs, is switched off.
 - The rate limit finds the client's IP by counting a configured number of trusted proxies
   (`TRUSTED_PROXY_HOPS`) from the right of `X-Forwarded-For`, instead of trusting every proxy with
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.

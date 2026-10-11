@@ -6,6 +6,7 @@ raise `PdfError` with a stable code, which the API turns into a 422 response.
 
 import io
 import re
+from dataclasses import dataclass
 from typing import Any
 
 import pdfplumber
@@ -77,8 +78,21 @@ def _page_text(page: Any) -> str:
     return f"{left}\n{right}"
 
 
+@dataclass(frozen=True)
+class Extracted:
+    """A CV's text and how many pages it had."""
+
+    text: str
+    pages: int
+
+
 def extract_text(pdf: bytes) -> str:
-    """Return the CV's text, pages separated by blank lines.
+    """Return the CV's text, pages separated by blank lines (see `extract`)."""
+    return extract(pdf).text
+
+
+def extract(pdf: bytes) -> Extracted:
+    """Return the CV's text, pages separated by blank lines, and its page count.
 
     Raises `PdfError` if the PDF is encrypted or damaged, has more than `MAX_PAGES` pages, or has
     no text layer (a scanned document).
@@ -94,4 +108,4 @@ def extract_text(pdf: bytes) -> str:
     visible = sum(len(re.sub(r"\s", "", page)) for page in pages)
     if not pages or visible / len(pages) < MIN_CHARS_PER_PAGE:
         raise NO_TEXT
-    return "\n\n".join(pages)
+    return Extracted("\n\n".join(pages), len(pages))
