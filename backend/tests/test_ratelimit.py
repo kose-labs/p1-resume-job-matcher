@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from starlette.types import Message, Receive, Scope, Send
 
 from app.main import app
-from app.ratelimit import RateLimit, RateLimiter
+from app.ratelimit import RateLimit, RateLimiter, client_ip
 
 client = TestClient(app)
 
@@ -123,3 +123,77 @@ def test_request_without_client_address_is_still_limited() -> None:
     scope: Scope = {"type": "http", "method": "POST", "path": "/api/v1/match", "headers": []}
     asyncio.run(middleware(scope, receive, send))
     assert sent[0]["status"] == 429
+
+
+# --- Which address is the client? (behind trusted proxies that append to X-Forwarded-For)
+
+PEER = "10.1.2.3"  # the last proxy, as the app's socket sees it
+
+
+def scope_with(*forwarded_for: str) -> Scope:
+    """An HTTP scope from PEER with the given X-Forwarded-For headers."""
+    headers = [(b"x-forwarded-for", value.encode()) for value in forwarded_for]
+    return {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/v1/match",
+        "headers": headers,
+        "client": (PEER, 443),
+    }
+
+
+def test_without_trusted_proxies_the_header_is_ignored() -> None:
+    assert client_ip(scope_with("203.0.113.7"), trusted_hops=0) == PEER
+
+
+def test_client_is_the_entry_as_many_places_from_the_right_as_there_are_proxies() -> None:
+    # The client forged 6.6.6.6; the edge proxy appended the real 203.0.113.7, the next proxy
+    # appended the edge's address.
+    scope = scope_with("6.6.6.6, 203.0.113.7, 172.16.0.2")
+    assert client_ip(scope, trusted_hops=2) == "203.0.113.7"
+
+
+def test_repeated_headers_are_read_as_one_list() -> None:
+    scope = scope_with("6.6.6.6", "203.0.113.7")
+    assert client_ip(scope, trusted_hops=1) == "203.0.113.7"
+
+
+def test_too_few_entries_falls_back_to_the_peer() -> None:
+    assert client_ip(scope_with("203.0.113.7"), trusted_hops=2) == PEER
+    assert client_ip(scope_with(), trusted_hops=1) == PEER
+
+
+def run_limited(middleware: RateLimit, scope: Scope) -> int:
+    """Send one request through the middleware and return the status it answered with."""
+    statuses: list[int] = []
+
+    async def receive() -> Message:
+        return {"type": "http.request", "body": b""}
+
+    async def send(message: Message) -> None:
+        if message["type"] == "http.response.start":
+            statuses.append(message["status"])
+
+    asyncio.run(middleware(scope, receive, send))
+    return statuses[0]
+
+
+async def ok_app(scope: Scope, receive: Receive, send: Send) -> None:
+    await send({"type": "http.response.start", "status": 200, "headers": []})
+    await send({"type": "http.response.body", "body": b""})
+
+
+def test_forged_addresses_share_the_real_clients_budget() -> None:
+    middleware = RateLimit(
+        ok_app, RateLimiter(limit=2, window=60), "POST", "/api/v1/match", trusted_hops=1
+    )
+    statuses = [run_limited(middleware, scope_with(f"10.0.0.{i}, 203.0.113.7")) for i in range(3)]
+    assert statuses == [200, 200, 429]
+
+
+def test_different_real_clients_get_separate_budgets() -> None:
+    middleware = RateLimit(
+        ok_app, RateLimiter(limit=1, window=60), "POST", "/api/v1/match", trusted_hops=1
+    )
+    assert run_limited(middleware, scope_with("203.0.113.7")) == 200
+    assert run_limited(middleware, scope_with("198.51.100.4")) == 200

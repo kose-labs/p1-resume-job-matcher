@@ -24,7 +24,15 @@ app = FastAPI(title="KoSe Labs service", version=VERSION)
 keep_uploads_in_memory()
 app.add_middleware(BodySizeLimit, max_bytes=MAX_REQUEST_BYTES)
 # Added last, so it runs first: over-limit clients are turned away before their upload is read.
-app.add_middleware(RateLimit, limiter=match_limiter, method="POST", path="/api/v1/match")
+app.add_middleware(
+    RateLimit,
+    limiter=match_limiter,
+    method="POST",
+    path="/api/v1/match",
+    # How many proxies in front of the app append to X-Forwarded-For (0 locally). Too low makes
+    # the limit stricter; too high lets clients forge their address. See docs/deployment.md.
+    trusted_hops=int(os.getenv("TRUSTED_PROXY_HOPS", "0")),
+)
 
 # Production frontend (e.g. on Vercel) runs on another origin, so it needs CORS.
 # Locally the Vite proxy makes requests same-origin, so this list can stay empty.

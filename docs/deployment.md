@@ -27,7 +27,7 @@ is the Docker image on **Render Free**.
 | Variable | Where | Value | Why |
 |---|---|---|---|
 | `CORS_ORIGINS` | Render (`render.yaml`) | `https://kose-labs.github.io` | Only our frontend may call the API from a browser. An origin has no path and no trailing slash. |
-| `FORWARDED_ALLOW_IPS` | Render (`render.yaml`) | `*` | Requests reach the app through Render's proxy; this makes Uvicorn use each visitor's IP, so the rate limit is per visitor. |
+| `TRUSTED_PROXY_HOPS` | Render (`render.yaml`) | `1`, then the number found below | How many proxies append to `X-Forwarded-For`. The rate limit takes the visitor's IP that many entries from the right; entries further left can be forged. |
 | `PORT` | Set by Render | `10000` | The Dockerfile already listens on `$PORT` on `0.0.0.0`. |
 | `VITE_API_URL` | GitHub repo variable | The Render URL | Built into the frontend at build time. |
 
@@ -37,6 +37,30 @@ is the Docker image on **Render Free**.
    15 idle minutes takes about a minute while Render wakes the service.
 2. The frontend shows **"Waking up the server…"**, then **"Server ready."**
 3. A match with a synthetic test PDF returns a result. Never test the live site with a real CV.
+
+## Rate limit: finding the proxy count
+
+Render puts several proxies in front of the app, and it keeps any `X-Forwarded-For` value the
+visitor sends, adding its own entries after it. The visitor's real IP is therefore exactly as many
+entries from the right as there are proxies; anything further left can be forged. Render doesn't
+document the number of proxies, so find it once after the first deploy:
+
+1. Start with `TRUSTED_PROXY_HOPS=1` (the Blueprint default).
+2. **Separate visitors test:** use up the limit from your laptop (11 matches in a minute), then
+   immediately try one match from your phone on mobile data. If the phone also gets
+   "Too many requests", every visitor shares one budget: raise the value by 1 in Render
+   (**Environment**), wait for the restart, and repeat.
+3. **Forgery test:** at the value where the phone gets through, send 11 requests from the laptop,
+   each with a different made-up `X-Forwarded-For` value, for example in PowerShell:
+
+   ```powershell
+   1..11 | ForEach-Object { curl.exe -s -o NUL -w "%{http_code}`n" -H "X-Forwarded-For: 10.0.0.$_" -F "cv=@test.pdf" -F "job_description=$('x' * 120)" https://<service>.onrender.com/api/v1/match }
+   ```
+
+   The 11th must print `429`. If all 11 succeed, the value is one too high: lower it by 1.
+4. Record the final value in `render.yaml` with a pull request, so a rebuilt service keeps it.
+
+Use a synthetic `test.pdf`, never a real CV.
 
 ## Rolling back
 
@@ -51,7 +75,8 @@ is the Docker image on **Render Free**.
 |---|---|---|
 | Stuck on "Waking up the server…" for over 2 minutes | Backend failed to start | Render service **Logs**; the build or the `/health` check failed |
 | Every match says "Couldn't reach the server" | Wrong `VITE_API_URL`, or `CORS_ORIGINS` doesn't exactly match the Pages origin | Fix the variable, then re-run **Deploy frontend** / redeploy on Render |
-| Everyone gets "Too many requests" | `FORWARDED_ALLOW_IPS` missing, so all visitors share the proxy's IP | Set it to `*` on Render |
+| Everyone gets "Too many requests" | `TRUSTED_PROXY_HOPS` too low, so all visitors share a proxy's IP | Raise it as described in "Rate limit: finding the proxy count" |
+| The rate limit never triggers | `TRUSTED_PROXY_HOPS` too high, so clients' forged addresses count | Lower it; rerun the forgery test |
 | Backend restarts or answers 502 under load | Over Render Free's 512 MB | Check memory in Render's metrics; ADR-0002 and ADR-0004 set the memory budget for the model |
 | Frontend loads but styles and scripts 404 | Wrong base path | The workflow builds with `--base=/<repo-name>/`; don't change it |
 | Deploy frontend fails with "Set the VITE_API_URL repository variable" | Step 4 not done | Add the variable, re-run the workflow |

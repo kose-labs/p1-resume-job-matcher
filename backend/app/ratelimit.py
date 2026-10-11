@@ -57,15 +57,37 @@ class RateLimiter:
             del self._hits[key]
 
 
+def client_ip(scope: Scope, trusted_hops: int) -> str:
+    """Return the address to rate-limit on.
+
+    Each proxy appends the address it received the request from to X-Forwarded-For, so behind
+    `trusted_hops` proxies the client's real address is that many entries from the right. Entries
+    further left were sent by the client and can be forged, so they are never used. With no
+    trusted proxies, or too few entries, the socket's peer address is used instead.
+    """
+    client = scope.get("client")
+    peer = client[0] if client else "unknown"
+    if trusted_hops <= 0:
+        return peer
+    values = [
+        value.decode("latin-1") for key, value in scope["headers"] if key == b"x-forwarded-for"
+    ]
+    hops = [hop.strip() for hop in ",".join(values).split(",") if hop.strip()]
+    return hops[-trusted_hops] if len(hops) >= trusted_hops else peer
+
+
 class RateLimit:
     """ASGI middleware that applies `limiter` per client IP to one method and path."""
 
-    def __init__(self, app: ASGIApp, limiter: RateLimiter, method: str, path: str) -> None:
-        """Wrap `app`, limiting only requests to `method` `path`."""
+    def __init__(
+        self, app: ASGIApp, limiter: RateLimiter, method: str, path: str, trusted_hops: int = 0
+    ) -> None:
+        """Wrap `app`, limiting only `method` `path`; see `client_ip` for `trusted_hops`."""
         self.app = app
         self.limiter = limiter
         self.method = method
         self.path = path
+        self.trusted_hops = trusted_hops
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """Reject the request with 429 and `Retry-After` if its client is over the limit."""
@@ -74,8 +96,7 @@ class RateLimit:
             and scope["method"] == self.method
             and scope["path"] == self.path
         ):
-            client = scope.get("client")
-            wait = self.limiter.check(client[0] if client else "unknown")
+            wait = self.limiter.check(client_ip(scope, self.trusted_hops))
             if wait is not None:
                 response = JSONResponse(
                     {"detail": {"code": "rate_limited", "message": RATE_LIMITED}},

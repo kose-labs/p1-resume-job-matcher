@@ -24,6 +24,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Pre-commit hooks for mypy (backend), oxlint and Prettier (frontend), so type, lint and format problems are caught before pushing.
 - Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
+### Security
+- The rate limit finds the client's IP by counting a configured number of trusted proxies
+  (`TRUSTED_PROXY_HOPS`) from the right of `X-Forwarded-For`, instead of trusting every proxy with
+  Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
+
 ### Changed
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).

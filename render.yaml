@@ -17,6 +17,8 @@ services:
     envVars:
       - key: CORS_ORIGINS
         value: https://kose-labs.github.io
-      # Trust Render's proxy, so the rate limit sees each visitor's IP instead of the proxy's.
-      - key: FORWARDED_ALLOW_IPS
-        value: "*"
+      # Proxies in front of the app that append to X-Forwarded-For. Start at 1: too low only
+      # makes the rate limit stricter; too high lets clients forge their address. Find the real
+      # number on the first deploy with "Rate limit: finding the proxy count" in docs/deployment.md.
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
