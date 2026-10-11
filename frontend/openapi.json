@@ -1,0 +1,376 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "KoSe Labs service",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "description": "Report that the service is up, for CI smoke tests and hosting health checks.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/version": {
+      "get": {
+        "summary": "Version",
+        "description": "Return the running backend version, so the frontend can show what it's connected to.",
+        "operationId": "version_api_v1_version_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Version Api V1 Version Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/match": {
+      "post": {
+        "summary": "Match",
+        "description": "Score how well a CV matches a job description.\n\nThe CV is checked and kept in memory only; it is never stored or logged.",
+        "operationId": "match_api_v1_match_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_match_api_v1_match_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "CV over 5 MB (`file_too_large`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "CV is not a PDF (`unsupported_file_type`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Over 10 requests a minute from one client (`rate_limited`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_match_api_v1_match_post": {
+        "properties": {
+          "cv": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Cv",
+            "description": "The CV as a PDF, at most 5 MB"
+          },
+          "job_description": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 100,
+            "title": "Job Description",
+            "description": "Job description text, 100 to 20,000 characters"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cv",
+          "job_description"
+        ],
+        "title": "Body_match_api_v1_match_post"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "description": "Machine-readable code plus a message the frontend can show as is."
+      },
+      "ErrorResponse": {
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse",
+        "description": "Body of every error the API raises itself (not FastAPI's field validation errors)."
+      },
+      "Evidence": {
+        "properties": {
+          "requirement": {
+            "type": "string",
+            "title": "Requirement"
+          },
+          "cv_excerpt": {
+            "type": "string",
+            "title": "Cv Excerpt"
+          },
+          "similarity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Similarity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requirement",
+          "cv_excerpt",
+          "similarity"
+        ],
+        "title": "Evidence",
+        "description": "A job requirement and the CV sentence that best supports it."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MatchResponse": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "description": "Overall match from 0 to 1"
+          },
+          "skills": {
+            "$ref": "#/components/schemas/Skills"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Evidence",
+            "description": "Strongest supporting pairs first"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelInfo"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "description": "Non-fatal notes, e.g. job_description_truncated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "skills",
+          "evidence",
+          "model",
+          "warnings"
+        ],
+        "title": "MatchResponse",
+        "description": "Result of matching one CV against one job description."
+      },
+      "ModelInfo": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "version"
+        ],
+        "title": "ModelInfo",
+        "description": "Which matcher produced a result, so results stay explainable as the model changes."
+      },
+      "Skill": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "esco_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Esco Uri",
+            "description": "ESCO skill URI, or null when the skill comes from our dictionary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "Skill",
+        "description": "A skill named in the job description."
+      },
+      "Skills": {
+        "properties": {
+          "matched": {
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            },
+            "type": "array",
+            "title": "Matched"
+          },
+          "missing": {
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            },
+            "type": "array",
+            "title": "Missing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "matched",
+          "missing"
+        ],
+        "title": "Skills",
+        "description": "Skills from the job description, split by whether the CV covers them."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
