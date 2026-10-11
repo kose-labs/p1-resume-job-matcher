@@ -28,6 +28,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
 ### Security
+- CI audits production dependencies for known vulnerabilities on every pull request:
+  `pip-audit` on the backend's locked packages and `npm audit` (high and above) on the frontend's.
 - The rate limit finds the client's IP by counting a configured number of trusted proxies
   (`TRUSTED_PROXY_HOPS`) from the right of `X-Forwarded-For`, instead of trusting every proxy with
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
