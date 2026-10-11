@@ -14,5 +14,14 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text'],
+      include: ['src/**/*.{ts,tsx}'],
+      // Entry point and test setup only wire things together; there is no logic to test.
+      exclude: ['src/main.tsx', 'src/setupTests.ts', 'src/**/*.test.{ts,tsx}'],
+      // Floor, not target: raise it as the project grows, never lower it to make CI pass.
+      thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
+    },
   },
 })
