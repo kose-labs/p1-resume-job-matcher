@@ -53,12 +53,12 @@ def test_errors_from_middleware_carry_cors_headers(cors_app: FastAPI) -> None:
 
 
 def test_rate_limit_retry_after_is_readable_cross_origin(cors_app: FastAPI) -> None:
-    client = TestClient(cors_app)
     files = {"cv": ("cv.pdf", TEXT_PDF, "application/pdf")}
     data = {"job_description": "Backend engineer building REST APIs in Python. " * 4}
-    for _ in range(10):
-        client.post("/api/v1/match", headers={"Origin": ALLOWED}, files=files, data=data)
-    response = client.post("/api/v1/match", headers={"Origin": ALLOWED}, files=files, data=data)
+    with TestClient(cors_app) as client:  # runs the lifespan, which loads the match service
+        for _ in range(10):
+            client.post("/api/v1/match", headers={"Origin": ALLOWED}, files=files, data=data)
+        response = client.post("/api/v1/match", headers={"Origin": ALLOWED}, files=files, data=data)
     assert response.status_code == 429
     assert response.headers["access-control-allow-origin"] == ALLOWED
     assert "retry-after" in response.headers["access-control-expose-headers"].lower()

@@ -85,6 +85,8 @@ LICENSE           MIT
 
 Copy `.env.example` to `.env`. Never commit `.env`.
 - `CORS_ORIGINS`: comma-separated frontend URLs allowed to call the deployed API.
+- `MATCH_CONCURRENCY`: how many matches may run at once (default 2, ADR-0005). Extra requests wait
+  their turn, so memory stays bounded on Render Free.
 - `TRUSTED_PROXY_HOPS`: how many proxies in front of the app append to `X-Forwarded-For`, so the
   rate limit (10 matches a minute) finds each visitor's real IP. `0` locally; set on Render as
   described in [docs/deployment.md](docs/deployment.md). Don't set Uvicorn's `FORWARDED_ALLOW_IPS=*`:
