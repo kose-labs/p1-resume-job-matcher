@@ -42,6 +42,11 @@ and gives no evidence).
   must be re-measured in the real API (S9: load once via lifespan, inject with `Depends`).
 - Scores need calibrating before display (raw cosines cluster between 0.3 and 0.7).
 - Model weights download at build time (Docker layer), not at request time, so cold starts don't
-  fetch from the Hugging Face Hub.
+  fetch from the Hugging Face Hub. The model **revision is pinned and its hash checked**, so a
+  rebuilt image can't silently pick up different weights.
+- Memory is decided by measurement, not estimate (S9): the real API with the model loaded runs 4
+  concurrent max-size matches in CI and fails above 400 MB peak RSS. Levers if it's tight:
+  onnxruntime with 1 intra-op thread (Render Free has 0.1 CPU, so more threads only thrash) and a cap
+  on concurrent model calls; potion-base-8M remains the fallback.
 - If no embedding beats TF-IDF on dev, we ship TF-IDF for the score, keep embeddings for evidence,
   and report that honestly in the model card.

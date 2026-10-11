@@ -59,13 +59,18 @@ def test_short_lines_are_not_requirements() -> None:
     ]
 
 
-def test_long_sentences_become_overlapping_windows_instead_of_being_cut() -> None:
-    sentence = " ".join(f"w{i}" for i in range(150))
-    parts = windows(sentence)
+@pytest.mark.parametrize("length", range(WINDOW_WORDS + 1, 301))
+def test_long_sentences_become_overlapping_windows_without_losing_words(length: int) -> None:
+    words = [f"w{i}" for i in range(length)]
+    parts = windows(" ".join(words))
     assert len(parts) > 1
     assert all(len(p.split()) <= WINDOW_WORDS for p in parts)
-    covered = {w for p in parts for w in p.split()}
-    assert covered == set(sentence.split())  # nothing dropped at the end
+    assert {w for p in parts for w in p.split()} == set(words)  # nothing dropped at the end
+
+
+def test_short_sentences_stay_whole() -> None:
+    sentence = " ".join(["word"] * WINDOW_WORDS)
+    assert windows(sentence) == [sentence]
 
 
 def test_cv_sentences_split_bullets() -> None:

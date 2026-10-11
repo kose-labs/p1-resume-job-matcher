@@ -72,7 +72,8 @@ def windows(sentence: str) -> list[str]:
     words = sentence.split()
     if len(words) <= WINDOW_WORDS:
         return [sentence]
-    starts = range(0, len(words) - WINDOW_STRIDE, WINDOW_STRIDE)
+    # The last window starts early enough to end on the last word.
+    starts = range(0, len(words) - WINDOW_WORDS + WINDOW_STRIDE, WINDOW_STRIDE)
     return [" ".join(words[i : i + WINDOW_WORDS]) for i in starts]
 
 
