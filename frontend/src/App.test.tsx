@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import type { MatchResponse } from './api/client'
+import { SAMPLE_JD } from './sample'
 
 const JD =
   'We are hiring a backend engineer to build and run REST APIs in Python with FastAPI. '.repeat(2)
@@ -24,13 +25,17 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
 }
 
 /** Stub fetch: the version check answers, and /match answers with `match()`. */
-function fakeApi(match: () => Promise<Response>, versionOk = true) {
+function fakeApi(match: () => Promise<Response>, versionOk = true, sampleOk = true) {
   const fetchMock = vi.fn((input: RequestInfo | URL, _init?: RequestInit) => {
     const url = String(input)
     if (url.endsWith('/api/v1/version')) {
       return versionOk ? Promise.resolve(json({ version: '0.1.0' })) : Promise.reject(new Error())
     }
     if (url.endsWith('/api/v1/match')) return match()
+    if (url.endsWith('/sample-cv.pdf')) {
+      const body = sampleOk ? '%PDF-1.3' : 'missing'
+      return Promise.resolve(new Response(body, { status: sampleOk ? 200 : 404 }))
+    }
     return Promise.reject(new Error(`unexpected request to ${url}`))
   })
   vi.stubGlobal('fetch', fetchMock)
@@ -124,6 +129,7 @@ describe('matching', () => {
     expect(screen.getByText('Kubernetes')).toBeInTheDocument()
     expect(screen.getByText(/Built FastAPI services/)).toBeInTheDocument()
     expect(screen.getByText('Model: tfidf-baseline v0.1.0')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Match result' })).toHaveFocus()
 
     const [, init] = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/match'))!
     const body = (init as RequestInit).body as FormData
@@ -149,6 +155,8 @@ describe('matching', () => {
     fillForm()
     fireEvent.click(screen.getByRole('button', { name: 'Match' }))
     expect(await screen.findByText(/not yet calibrated/)).toBeInTheDocument()
+    expect(screen.getByText('Text similarity: 0.04')).toBeInTheDocument()
+    expect(screen.queryByText(/Match score/)).not.toBeInTheDocument()
     expect(screen.getByText(/No specific skills were recognised/)).toBeInTheDocument()
     expect(screen.queryByText('None found.')).not.toBeInTheDocument()
     expect(screen.queryByText('Why this score')).not.toBeInTheDocument()
@@ -228,5 +236,55 @@ describe('errors from the API', () => {
     fillForm()
     fireEvent.click(screen.getByRole('button', { name: 'Match' }))
     expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't reach the server")
+  })
+})
+
+describe('sample data and the CV drop zone', () => {
+  const dropZone = () => screen.getByText(/Drop your PDF here/).closest('label')!
+
+  it('fills in the sample job description and CV', async () => {
+    fakeApi(() => Promise.resolve(json(RESULT)))
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Use sample data' }))
+    expect(await screen.findByText('sample-cv.pdf')).toBeInTheDocument()
+    expect(screen.getByLabelText('Job description')).toHaveValue(SAMPLE_JD)
+    expect(screen.getByRole('button', { name: 'Match' })).toBeEnabled()
+  })
+
+  it('says when the sample CV cannot be loaded', async () => {
+    fakeApi(() => Promise.resolve(json(RESULT)), true, false)
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Use sample data' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load the sample CV")
+  })
+
+  it('accepts a PDF dropped onto the drop zone', async () => {
+    fakeApi(() => Promise.resolve(json(RESULT)))
+    render(<App />)
+    fireEvent.change(screen.getByLabelText('Job description'), { target: { value: JD } })
+    fireEvent.dragOver(dropZone())
+    expect(dropZone()).toHaveClass('dragging')
+    fireEvent.dragLeave(dropZone())
+    expect(dropZone()).not.toHaveClass('dragging')
+    fireEvent.drop(dropZone(), { dataTransfer: { files: [pdf()] } })
+    expect(screen.getByText('cv.pdf')).toBeInTheDocument()
+    expect(screen.getByText(/1 KB/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Match' })).toBeEnabled()
+  })
+
+  it('ignores a drop without a file', async () => {
+    fakeApi(() => Promise.resolve(json(RESULT)))
+    render(<App />)
+    fireEvent.drop(dropZone(), { dataTransfer: { files: [] } })
+    expect(screen.getByText(/Drop your PDF here/)).toBeInTheDocument()
+  })
+
+  it('shows the size of a larger CV in MB', async () => {
+    fakeApi(() => Promise.resolve(json(RESULT)))
+    render(<App />)
+    const cv = pdf()
+    Object.defineProperty(cv, 'size', { value: 2 * 1024 * 1024 })
+    fillForm(cv)
+    expect(screen.getByText(/2\.0 MB/)).toBeInTheDocument()
   })
 })

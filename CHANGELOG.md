@@ -7,6 +7,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Redesigned match page: clear sections, a drag-and-drop CV area showing the chosen file, a server
+  status pill, a result card with a score bar, skill chips and evidence cards, light and dark
+  themes, and a "How it works" section. On a phone the page moves to the result when it arrives.
+- "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
+  visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
@@ -57,6 +62,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- An uncalibrated score is shown as "Text similarity: 0.34", not as a percentage, which read as a
+  probability of fit.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
