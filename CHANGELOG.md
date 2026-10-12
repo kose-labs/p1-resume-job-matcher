@@ -60,6 +60,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
+### Fixed
+- Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
+  service's root directory (`backend/`), where Render resolves them. The first deploy failed looking
+  for `backend/backend`.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added
