@@ -7,10 +7,11 @@ from starlette.types import Message, Receive, Scope, Send
 
 from app.main import app
 from app.ratelimit import RateLimit, RateLimiter, client_ip
+from tests.pdfs import TEXT_PDF
 
 client = TestClient(app)
 
-PDF = b"%PDF-1.7\n% synthetic test file\n"
+PDF = TEXT_PDF
 JD = "We are hiring a backend engineer to build and run REST APIs in Python with FastAPI. " * 2
 
 

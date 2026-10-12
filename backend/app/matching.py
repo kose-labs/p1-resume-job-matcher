@@ -6,9 +6,9 @@ from app.schemas import MatchResponse, ModelInfo, Skills
 
 
 class MatchService(Protocol):
-    """Anything that can score a CV PDF against a job description."""
+    """Anything that can score a CV's text against a job description."""
 
-    def match(self, cv_pdf: bytes, job_description: str) -> MatchResponse:
+    def match(self, cv_text: str, job_description: str) -> MatchResponse:
         """Return the match result for one CV and one job description."""
         ...
 
@@ -20,7 +20,7 @@ class StubMatchService:
     real contract before the model exists.
     """
 
-    def match(self, cv_pdf: bytes, job_description: str) -> MatchResponse:
+    def match(self, cv_text: str, job_description: str) -> MatchResponse:
         """Return an empty result that says it came from the stub."""
         return MatchResponse(
             score=0.0,

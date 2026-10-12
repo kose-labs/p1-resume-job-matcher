@@ -8,10 +8,13 @@ from starlette.formparsers import MultiPartParser
 
 from app.limits import MAX_CV_BYTES, MAX_REQUEST_BYTES
 from app.main import app
+from app.matching import StubMatchService, get_match_service
+from app.schemas import MatchResponse
+from tests.pdfs import TEXT_PDF, image_only_pdf, text_pdf
 
 client = TestClient(app)
 
-PDF = b"%PDF-1.7\n% synthetic test file, not a real CV\n"
+PDF = TEXT_PDF
 JD = "We are hiring a backend engineer to build and run REST APIs in Python with FastAPI. " * 2
 
 
@@ -108,3 +111,38 @@ def test_uploads_are_kept_in_memory() -> None:
 def test_openapi_documents_the_error_responses() -> None:
     responses = client.get("/openapi.json").json()["paths"]["/api/v1/match"]["post"]["responses"]
     assert {"200", "413", "415", "422"} <= set(responses)
+
+
+def test_scanned_pdf_gets_a_clear_422() -> None:
+    response = post(cv=image_only_pdf())
+    assert response.status_code == 422
+    assert error_code(response) == "pdf_no_text"
+
+
+def test_password_protected_pdf_gets_a_clear_422() -> None:
+    response = post(cv=text_pdf(password="not-the-password"))
+    assert response.status_code == 422
+    assert error_code(response) == "pdf_unreadable"
+
+
+def test_too_many_pages_gets_a_clear_422() -> None:
+    response = post(cv=text_pdf(pages=11))
+    assert response.status_code == 422
+    assert error_code(response) == "pdf_too_many_pages"
+
+
+def test_matcher_receives_the_extracted_text() -> None:
+    seen: dict[str, str] = {}
+
+    class Spy:
+        def match(self, cv_text: str, job_description: str) -> MatchResponse:
+            seen.update(cv=cv_text, jd=job_description)
+            return StubMatchService().match(cv_text, job_description)
+
+    app.dependency_overrides[get_match_service] = Spy
+    try:
+        assert post().status_code == 200
+    finally:
+        app.dependency_overrides.clear()
+    assert "Built FastAPI services in Python with PostgreSQL and Docker." in seen["cv"]
+    assert seen["jd"] == JD.strip()

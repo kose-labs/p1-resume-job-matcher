@@ -54,8 +54,14 @@ Use **pdfplumber with our column split**, wrapped in one function the API calls:
 
 ## Consequences
 - Permissive licences only (MIT/BSD), matching the repo's MIT licence.
-- The column split and the text-layer check become backend code with unit tests, and these
-  synthetic PDFs become `backend/tests/fixtures/` (they contain no personal data).
+- The column split and the text-layer check become backend code with unit tests. Done in
+  `backend/app/extract.py`; the tests build their synthetic PDFs in memory (`backend/tests/pdfs.py`)
+  instead of committing binary fixtures.
+- **Correction found while implementing (2026-10-11):** taking the widest empty strip in the middle
+  of the page fails when the right column has short lines, because the space after them is wider
+  than the real gap. The backend version only accepts a gap with **text on both sides**
+  (`test_column_split_ignores_empty_space_after_short_lines`). The S6 numbers above are unaffected:
+  those fixtures had long lines in both columns.
 - Preprocessing (K6) must remove `(cid:N)` placeholders.
 - Before accepting: rerun on 10 real CVs (Kobi's corpus, K5), including real two-column layouts, and
   read the extracted text by eye. If real layouts break the split (three columns, tables, text in
