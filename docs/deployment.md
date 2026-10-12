@@ -28,6 +28,7 @@ is the Docker image on **Render Free**.
 |---|---|---|---|
 | `CORS_ORIGINS` | Render (`render.yaml`) | `https://kose-labs.github.io` | Only our frontend may call the API from a browser. An origin has no path and no trailing slash. |
 | `TRUSTED_PROXY_HOPS` | Render (`render.yaml`) | `1`, then the number found below | How many proxies append to `X-Forwarded-For`. The rate limit takes the visitor's IP that many entries from the right; entries further left can be forged. |
+| `MATCH_CONCURRENCY` | Not set (default) | `2` | Matches that may use the CPU at once (ADR-0005). CI's memory check confirms two near-5 MB CVs fit; lower to `1` if a heavier model doesn't. |
 | `PORT` | Set by Render | `10000` | The Dockerfile already listens on `$PORT` on `0.0.0.0`. |
 | `VITE_API_URL` | GitHub repo variable | The Render URL | Built into the frontend at build time. |
 

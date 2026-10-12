@@ -1,6 +1,8 @@
-"""The matching service the API calls, injected so it can be replaced in tests and in S9."""
+"""The matching service the API calls: built once at startup, injected into each request."""
 
 from typing import Protocol
+
+from fastapi import Request
 
 from app.schemas import MatchResponse, ModelInfo, Skills
 
@@ -31,6 +33,16 @@ class StubMatchService:
         )
 
 
-def get_match_service() -> MatchService:
-    """Provide the matching service to the endpoint (FastAPI dependency)."""
+def load_match_service() -> MatchService:
+    """Build the matching service; called once at startup, never per request.
+
+    The stub for now. Loading a real model (fitting TF-IDF, reading embedding weights) is slow,
+    so it happens here, before the server accepts requests, not inside the first match.
+    """
     return StubMatchService()
+
+
+def get_match_service(request: Request) -> MatchService:
+    """Provide the service loaded at startup (FastAPI dependency; tests override it)."""
+    service: MatchService = request.app.state.match_service
+    return service

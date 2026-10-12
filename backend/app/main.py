@@ -6,12 +6,14 @@ proxies to this backend during local development.
 """
 
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, FastAPI, File, Form, UploadFile
+from anyio import CapacityLimiter, to_thread
+from fastapi import APIRouter, Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import StringConstraints
-from starlette.concurrency import run_in_threadpool
 
 from app.extract import PdfError, extract_text
 from app.limits import (
@@ -21,13 +23,25 @@ from app.limits import (
     keep_uploads_in_memory,
     read_cv,
 )
-from app.matching import MatchService, get_match_service
+from app.matching import MatchService, get_match_service, load_match_service
 from app.ratelimit import RateLimit, match_limiter
 from app.schemas import ErrorResponse, MatchResponse
 
 VERSION = "0.1.0"
+# How many requests may extract and match at the same time (ADR-0005). Render Free has 0.1 CPU
+# and 512 MB, so more parallel work only queues on the CPU and adds to peak memory.
+MATCH_CONCURRENCY = int(os.getenv("MATCH_CONCURRENCY", "2"))
 
-app = FastAPI(title="KoSe Labs service", version=VERSION)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Load the model once before serving, and cap how much CPU work runs at once."""
+    app.state.match_service = load_match_service()
+    app.state.cpu_limiter = CapacityLimiter(MATCH_CONCURRENCY)
+    yield
+
+
+app = FastAPI(title="KoSe Labs service", version=VERSION, lifespan=lifespan)
 
 keep_uploads_in_memory()
 app.add_middleware(BodySizeLimit, max_bytes=MAX_REQUEST_BYTES)
@@ -80,6 +94,11 @@ JobDescription = Annotated[
 ]
 
 
+def _extract_and_match(service: MatchService, cv_pdf: bytes, job_description: str) -> MatchResponse:
+    """The CPU-bound part of a match: read the PDF's text, then score it."""
+    return service.match(extract_text(cv_pdf), job_description)
+
+
 @api.post(
     "/match",
     responses={
@@ -92,6 +111,7 @@ JobDescription = Annotated[
     },
 )
 async def match(
+    request: Request,
     cv: Annotated[UploadFile, File(description="The CV as a PDF, at most 5 MB")],
     job_description: JobDescription,
     service: Annotated[MatchService, Depends(get_match_service)],
@@ -102,11 +122,17 @@ async def match(
     """
     cv_pdf = await read_cv(cv)
     try:
-        # CPU-bound: run it in a worker thread so other requests (and /health) aren't blocked.
-        cv_text = await run_in_threadpool(extract_text, cv_pdf)
+        # CPU-bound work runs in a worker thread, at most MATCH_CONCURRENCY at once, so the event
+        # loop stays free for other requests and /health (ADR-0005).
+        return await to_thread.run_sync(
+            _extract_and_match,
+            service,
+            cv_pdf,
+            job_description,
+            limiter=request.app.state.cpu_limiter,
+        )
     except PdfError as error:
         raise ApiError(422, error.code, error.message) from error
-    return service.match(cv_text, job_description)
 
 
 app.include_router(api)

@@ -3,7 +3,9 @@
 from collections.abc import Iterator
 
 import pytest
+from fastapi.testclient import TestClient
 
+from app.main import app
 from app.ratelimit import match_limiter
 
 
@@ -13,3 +15,11 @@ def fresh_rate_limit() -> Iterator[None]:
     match_limiter.reset()
     yield
     match_limiter.reset()
+
+
+@pytest.fixture(scope="session")
+def client() -> Iterator[TestClient]:
+    """One test client for the whole run. Entering it runs the app's startup (lifespan), which
+    loads the match service, exactly as the server does before accepting requests."""
+    with TestClient(app) as test_client:
+        yield test_client

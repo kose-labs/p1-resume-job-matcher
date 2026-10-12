@@ -7,6 +7,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Serving (S9, ADR-0005): the match service loads once at startup (lifespan) and is injected with
+  `Depends`; extraction and matching run in worker threads, at most `MATCH_CONCURRENCY` (2) at once,
+  so `/health` stays fast during matches. CI now load-tests the Docker image at Render's 512 MB
+  with four near-5 MB CVs and fails if peak memory passes 400 MB.
 - CV text extraction from uploaded PDFs (ADR-0003): pdfplumber with a column split for two-column
   CVs, and clear 422 errors for password-protected or damaged files (`pdf_unreadable`), more than
   10 pages (`pdf_too_many_pages`) and scanned PDFs (`pdf_no_text`). Runs in a worker thread.
