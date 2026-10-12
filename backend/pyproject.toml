@@ -5,7 +5,9 @@ description = "KoSe Labs service backend"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.142.4",
+    "numpy>=2.0",
     "python-multipart>=0.0.32",
+    "scikit-learn>=1.5",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -46,3 +48,8 @@ branch = true
 [tool.coverage.report]
 # Floor, not target: raise it as the project grows, never lower it to make CI pass.
 fail_under = 80
+
+[[tool.mypy.overrides]]
+# scikit-learn and SciPy ship without type hints.
+module = ["sklearn.*", "scipy.*"]
+ignore_missing_imports = true
