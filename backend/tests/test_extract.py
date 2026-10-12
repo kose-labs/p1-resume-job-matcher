@@ -1,5 +1,7 @@
 """CV text extraction (ADR-0003): reading order, scanned and damaged PDFs, page limit."""
 
+import traceback
+
 import pytest
 
 from app.extract import MAX_PAGES, PdfError, column_split, extract_text
@@ -69,3 +71,29 @@ def test_column_split_ignores_empty_space_after_short_lines() -> None:
 def test_column_split_ignores_words_outside_the_page() -> None:
     words = [{"x0": -20, "x1": 150}, {"x0": 220, "x1": 700}]
     assert column_split(words, width=600) is not None
+
+
+def test_each_failure_raises_a_fresh_error_that_keeps_no_earlier_cv() -> None:
+    # Re-raising one shared exception object grows its traceback on every request, and the frames
+    # keep their locals alive, including earlier CVs' bytes (found by Kobi in review).
+    first_cv = b"%PDF-1.7\n first CV, not really a pdf"
+    second_cv = b"%PDF-1.7\n second CV, not really a pdf"
+    errors = []
+    for cv in (first_cv, second_cv):
+        with pytest.raises(PdfError) as caught:
+            extract_text(cv)
+        errors.append(caught.value)
+
+    assert errors[0] is not errors[1]
+    first_frames = traceback.extract_tb(errors[0].__traceback__)
+    assert len(traceback.extract_tb(errors[1].__traceback__)) == len(first_frames)
+    # Only the app's frames count: this test's own frame naturally holds both CVs.
+    held = [
+        value
+        for frame, _ in traceback.walk_tb(errors[1].__traceback__)
+        if frame.f_globals.get("__name__") == "app.extract"
+        for value in frame.f_locals.values()
+        if isinstance(value, bytes)
+    ]
+    assert second_cv in held
+    assert first_cv not in held

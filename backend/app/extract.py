@@ -28,16 +28,32 @@ class PdfError(Exception):
         self.message = message
 
 
-UNREADABLE = PdfError(
-    "pdf_unreadable",
-    "We couldn't read this PDF. It may be password-protected or damaged; try exporting it again.",
-)
-TOO_MANY_PAGES = PdfError("pdf_too_many_pages", f"The CV must be {MAX_PAGES} pages or fewer.")
-NO_TEXT = PdfError(
-    "pdf_no_text",
-    "This PDF has no selectable text, so it looks scanned. "
-    "Please upload a PDF exported from Word or Google Docs.",
-)
+# Each failure builds a new PdfError. Re-raising one shared exception object would grow its
+# traceback on every request, and the traceback's frames keep their locals alive, including the
+# CV bytes: every failed CV would stay in memory until the process restarts.
+
+
+def unreadable() -> PdfError:
+    """Error for an encrypted or damaged PDF."""
+    return PdfError(
+        "pdf_unreadable",
+        "We couldn't read this PDF. It may be password-protected or damaged; "
+        "try exporting it again.",
+    )
+
+
+def too_many_pages() -> PdfError:
+    """Error for a PDF over the page limit."""
+    return PdfError("pdf_too_many_pages", f"The CV must be {MAX_PAGES} pages or fewer.")
+
+
+def no_text() -> PdfError:
+    """Error for a PDF without a text layer (a scanned document)."""
+    return PdfError(
+        "pdf_no_text",
+        "This PDF has no selectable text, so it looks scanned. "
+        "Please upload a PDF exported from Word or Google Docs.",
+    )
 
 
 def column_split(words: list[dict[str, Any]], width: float, min_gap: float = 15) -> float | None:
@@ -100,12 +116,12 @@ def extract(pdf: bytes) -> Extracted:
     try:
         with pdfplumber.open(io.BytesIO(pdf)) as document:
             if len(document.pages) > MAX_PAGES:
-                raise TOO_MANY_PAGES
+                raise too_many_pages()
             pages = [_page_text(page) for page in document.pages]
     except (PdfminerException, PSException) as error:
-        raise UNREADABLE from error
+        raise unreadable() from error
 
     visible = sum(len(re.sub(r"\s", "", page)) for page in pages)
     if not pages or visible / len(pages) < MIN_CHARS_PER_PAGE:
-        raise NO_TEXT
+        raise no_text()
     return Extracted("\n\n".join(pages), len(pages))
