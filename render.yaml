@@ -9,8 +9,9 @@ services:
     region: frankfurt
     branch: main
     rootDir: backend
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    # Relative to rootDir, not the repo root: Render looks in backend/ for both.
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     # Deploy a commit on main only after its GitHub checks (CI) have passed.
     autoDeployTrigger: checksPass
