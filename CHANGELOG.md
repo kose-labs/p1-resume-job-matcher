@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Evaluation metrics in `app.ml.metrics` (quadratic weighted κ, tie-aware Spearman ρ), tested in CI
+  against scikit-learn and SciPy reference values; `scripts/j2-pairs/evaluate.py` uses them.
 - TF-IDF + cosine baseline matcher (`app.ml.tfidf`) and a script that scores every pair of the
   evaluation corpus (`scripts/score_corpus.py`); results in `docs/experiments/k7-tfidf-baseline.md`.
 - Text preprocessing for CVs and job descriptions (`app.ml.preprocess`): cleanup of PDF and
