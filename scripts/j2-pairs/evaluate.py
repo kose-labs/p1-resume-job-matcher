@@ -12,21 +12,26 @@ joins it to the pairs both raters have rated, and reports Spearman ρ against th
 confidence interval that resamples **job descriptions**, not pairs, because pairs that share a JD
 aren't independent.
 
-Plain Python on purpose: the numbers are small and the formulas are short enough to read.
+The metric functions live in `backend/app/ml/metrics.py`, where CI tests them against
+scikit-learn and SciPy reference values.
 """
 
 import argparse
 import csv
 import json
 import random
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "backend"))  # use the tested metric code
+
+from app.ml.metrics import LEVELS, spearman, weighted_kappa  # noqa: E402
+
 PAIRS = ROOT / "data" / "pairs" / "pairs.jsonl"
 RATINGS = ROOT / "data" / "ratings"
 RATERS = ("kobi", "semanu")
-LEVELS = (1, 2, 3, 4, 5)
 
 
 def read_ratings(rater: str) -> dict[str, int]:
@@ -38,49 +43,6 @@ def read_ratings(rater: str) -> dict[str, int]:
     if bad:
         raise SystemExit(f"{rater}.csv has ratings outside 1-5: {bad}")
     return ratings
-
-
-def weighted_kappa(a: list[int], b: list[int]) -> float:
-    """Quadratic weighted Cohen's κ for two raters on a 1-5 scale.
-
-    κ = 1 - Σ w·observed / Σ w·expected, where w = (i - j)² / (k - 1)²: big disagreements cost
-    more, and "expected" is what two raters with these rating habits would agree on by chance.
-    """
-    k, n = len(LEVELS), len(a)
-    observed = [[0.0] * k for _ in range(k)]
-    for x, y in zip(a, b, strict=True):
-        observed[x - 1][y - 1] += 1 / n
-    row = [sum(r) for r in observed]
-    col = [sum(observed[i][j] for i in range(k)) for j in range(k)]
-    w = [[(i - j) ** 2 / (k - 1) ** 2 for j in range(k)] for i in range(k)]
-    num = sum(w[i][j] * observed[i][j] for i in range(k) for j in range(k))
-    den = sum(w[i][j] * row[i] * col[j] for i in range(k) for j in range(k))
-    return 1.0 if den == 0 else 1 - num / den
-
-
-def ranks(values: list[float]) -> list[float]:
-    """Rank values from 1, giving tied values the average of their ranks."""
-    order = sorted(range(len(values)), key=values.__getitem__)
-    result = [0.0] * len(values)
-    i = 0
-    while i < len(order):
-        j = i
-        while j + 1 < len(order) and values[order[j + 1]] == values[order[i]]:
-            j += 1
-        for m in range(i, j + 1):
-            result[order[m]] = (i + j) / 2 + 1
-        i = j + 1
-    return result
-
-
-def spearman(x: list[float], y: list[float]) -> float:
-    """Spearman ρ: the Pearson correlation of the ranks (handles ties)."""
-    rx, ry = ranks(x), ranks(y)
-    mx, my = sum(rx) / len(rx), sum(ry) / len(ry)
-    cov = sum((a - mx) * (b - my) for a, b in zip(rx, ry, strict=True))
-    vx = sum((a - mx) ** 2 for a in rx)
-    vy = sum((b - my) ** 2 for b in ry)
-    return cov / (vx * vy) ** 0.5 if vx and vy else 0.0
 
 
 def load_pairs() -> dict[str, dict[str, str]]:
@@ -115,7 +77,8 @@ def score(path: Path, split: str, rounds: int) -> None:
         scores = {(r["cv_id"], r["jd_id"]): float(r["score"]) for r in csv.DictReader(f)}
 
     by_jd: dict[str, list[tuple[float, float]]] = defaultdict(list)
-    for pid in a.keys() & b.keys():
+    # Sorted: set order changes between runs, which would make the bootstrap unrepeatable.
+    for pid in sorted(a.keys() & b.keys()):
         p = pairs[pid]
         if split != "all" and p["split"] != split:
             continue
@@ -125,7 +88,7 @@ def score(path: Path, split: str, rounds: int) -> None:
         raise SystemExit(f"only {len(flat)} rated pairs in split '{split}'")
 
     rho = spearman([s for s, _ in flat], [r for _, r in flat])
-    rng, jds, samples = random.Random(0), list(by_jd), []
+    rng, jds, samples = random.Random(0), sorted(by_jd), []
     for _ in range(rounds):
         resampled = [x for jd in rng.choices(jds, k=len(jds)) for x in by_jd[jd]]
         samples.append(spearman([s for s, _ in resampled], [r for _, r in resampled]))
