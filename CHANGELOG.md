@@ -62,6 +62,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
+- The result page no longer shows "None found" and "None" for skills when none were recognised in
+  the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
   service's root directory (`backend/`), where Render resolves them. The first deploy failed looking
   for `backend/backend`.
