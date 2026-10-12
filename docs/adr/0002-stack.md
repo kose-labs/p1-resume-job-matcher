@@ -1,6 +1,6 @@
 # ADR-0002: Stack and hosting for P1
 
-**Status:** proposed · **Date:** 2026-10-09 · **Deciders:** Semanu, Kobi (accept at the kickoff sync)
+**Status:** accepted (2026-10-12) · **Date:** 2026-10-09 · **Deciders:** Semanu, Kobi
 
 ## Context
 P1 (Resume–Job Matcher) needs a public demo link by 2026-10-18. **Constraint: free tiers only.
@@ -53,7 +53,7 @@ Checking the providers' current docs (2026-10-09) changed that picture:
    host only the model, called from the Render backend. Cons: a second service to run, a network hop
    on every request, GPU time quotas, and it lives on a personal account. Kept as a last resort.
 
-## Decision (proposed)
+## Decision
 - **Stack:** keep the template, FastAPI + React/Vite/TypeScript.
 - **Frontend:** **GitHub Pages**, deployed by a GitHub Actions workflow on every merge to `main`.
 - **Backend:** **Render Free**, from the existing Dockerfile. The model has to fit the 512 MB box:
