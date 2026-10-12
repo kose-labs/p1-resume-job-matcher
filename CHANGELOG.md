@@ -14,6 +14,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - CV text extraction from uploaded PDFs (ADR-0003): pdfplumber with a column split for two-column
   CVs, and clear 422 errors for password-protected or damaged files (`pdf_unreadable`), more than
   10 pages (`pdf_too_many_pages`) and scanned PDFs (`pdf_no_text`). Runs in a worker thread.
+- TF-IDF + cosine baseline matcher (`app.ml.tfidf`) and a script that scores every pair of the
+  evaluation corpus (`scripts/score_corpus.py`); results in `docs/experiments/k7-tfidf-baseline.md`.
 - Text preprocessing for CVs and job descriptions (`app.ml.preprocess`): cleanup of PDF and
   job-board artefacts (including pdfplumber's `(cid:N)` glyph placeholders), sections, sentences,
   and a tokenizer that keeps tech names such as C++, C#, .NET, Node.js and Go whole.
@@ -35,6 +37,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
 ### Security
+- CI audits production dependencies for known vulnerabilities on every pull request:
+  `pip-audit` on the backend's locked packages and `npm audit` (high and above) on the frontend's.
 - The rate limit finds the client's IP by counting a configured number of trusted proxies
   (`TRUSTED_PROXY_HOPS`) from the right of `X-Forwarded-For`, instead of trusting every proxy with
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
