@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- TF-IDF + cosine baseline matcher (`app.ml.tfidf`) and a script that scores every pair of the
+  evaluation corpus (`scripts/score_corpus.py`); results in `docs/experiments/k7-tfidf-baseline.md`.
 - Text preprocessing for CVs and job descriptions (`app.ml.preprocess`): cleanup of PDF and
   job-board artefacts (including pdfplumber's `(cid:N)` glyph placeholders), sections, sentences,
   and a tokenizer that keeps tech names such as C++, C#, .NET, Node.js and Go whole.
