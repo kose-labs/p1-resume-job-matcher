@@ -7,6 +7,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
   gzipped-JSON artefact that `scripts/build_tfidf_artifact.py` rebuilds byte for byte. Scores are
