@@ -13,6 +13,7 @@ from typing import Annotated
 from anyio import CapacityLimiter, to_thread
 from fastapi import APIRouter, Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import StringConstraints
 
 from app.extract import PdfError, extract
@@ -76,6 +77,12 @@ if origins:
         # Browsers only let cross-origin JavaScript read a few standard headers unless listed here.
         expose_headers=["Retry-After", "X-Request-ID"],
     )
+
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    """Send anyone who opens the API's address to its interactive docs instead of a 404."""
+    return RedirectResponse("/docs")
 
 
 @app.get("/health")
