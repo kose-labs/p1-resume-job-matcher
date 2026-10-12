@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Text preprocessing for CVs and job descriptions (`app.ml.preprocess`): cleanup of PDF and
+  job-board artefacts (including pdfplumber's `(cid:N)` glyph placeholders), sections, sentences,
+  and a tokenizer that keeps tech names such as C++, C#, .NET, Node.js and Go whole.
 - `POST /api/v1/match` skeleton: request and response models from the API contract, a 5 MB CV
   limit enforced while the upload arrives (413), PDF check by file content (415) and field
   validation (422). Uploads stay in memory, never on disk. Returns a labelled stub result until the
