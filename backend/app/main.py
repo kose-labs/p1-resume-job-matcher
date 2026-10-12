@@ -59,12 +59,12 @@ app.add_middleware(
     trusted_hops=int(os.getenv("TRUSTED_PROXY_HOPS", "0")),
 )
 
-# Production frontend (e.g. on Vercel) runs on another origin, so it needs CORS.
-# Locally the Vite proxy makes requests same-origin, so this list can stay empty.
 # One JSON log line per request (ID, method, path, status, duration), including the 413 and 429
 # answers from the limits above. Never the CV or job description (see app/observability.py).
 app.add_middleware(RequestLog)
 
+# The production frontend (GitHub Pages) runs on another origin, so it needs CORS. Locally the
+# Vite proxy makes requests same-origin, so CORS_ORIGINS can stay empty.
 origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 if origins:
     # Keep this the last middleware added (the outermost), so the 413 and 429 responses from the
