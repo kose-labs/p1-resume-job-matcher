@@ -35,12 +35,13 @@ def _draw(pdf: canvas.Canvas, lines: list[str], x: float, top: float) -> None:
         pdf.drawString(x, top - i * 16, line)
 
 
-def text_pdf(pages: int = 1, password: str | None = None) -> bytes:
-    """A one-column CV, optionally repeated over several pages or password-protected."""
+def text_pdf(pages: int = 1, password: str | None = None, lines: list[str] | None = None) -> bytes:
+    """A one-column CV, optionally repeated over several pages, password-protected, or with
+    custom lines."""
     buffer = io.BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4, encrypt=password)
     for _ in range(pages):
-        _draw(pdf, CV_LINES, 50, HEIGHT - 60)
+        _draw(pdf, lines or CV_LINES, 50, HEIGHT - 60)
         pdf.showPage()
     pdf.save()
     return buffer.getvalue()

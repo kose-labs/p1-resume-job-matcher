@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import StringConstraints
 
-from app.extract import PdfError, extract_text
+from app.extract import PdfError, extract
 from app.limits import (
     MAX_REQUEST_BYTES,
     ApiError,
@@ -24,6 +24,7 @@ from app.limits import (
     read_cv,
 )
 from app.matching import MatchService, get_match_service, load_match_service
+from app.observability import RequestLog, configure_logging, log_event
 from app.ratelimit import RateLimit, match_limiter
 from app.schemas import ErrorResponse, MatchResponse
 
@@ -36,6 +37,7 @@ MATCH_CONCURRENCY = int(os.getenv("MATCH_CONCURRENCY", "2"))
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Load the model once before serving, and cap how much CPU work runs at once."""
+    configure_logging()
     app.state.match_service = load_match_service()
     app.state.cpu_limiter = CapacityLimiter(MATCH_CONCURRENCY)
     yield
@@ -58,6 +60,10 @@ app.add_middleware(
 
 # Production frontend (e.g. on Vercel) runs on another origin, so it needs CORS.
 # Locally the Vite proxy makes requests same-origin, so this list can stay empty.
+# One JSON log line per request (ID, method, path, status, duration), including the 413 and 429
+# answers from the limits above. Never the CV or job description (see app/observability.py).
+app.add_middleware(RequestLog)
+
 origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 if origins:
     # Keep this the last middleware added (the outermost), so the 413 and 429 responses from the
@@ -68,7 +74,7 @@ if origins:
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
         # Browsers only let cross-origin JavaScript read a few standard headers unless listed here.
-        expose_headers=["Retry-After"],
+        expose_headers=["Retry-After", "X-Request-ID"],
     )
 
 
@@ -94,9 +100,12 @@ JobDescription = Annotated[
 ]
 
 
-def _extract_and_match(service: MatchService, cv_pdf: bytes, job_description: str) -> MatchResponse:
-    """The CPU-bound part of a match: read the PDF's text, then score it."""
-    return service.match(extract_text(cv_pdf), job_description)
+def _extract_and_match(
+    service: MatchService, cv_pdf: bytes, job_description: str
+) -> tuple[MatchResponse, int]:
+    """The CPU-bound part of a match: read the PDF's text, then score it. Returns the page count."""
+    cv = extract(cv_pdf)
+    return service.match(cv.text, job_description), cv.pages
 
 
 @api.post(
@@ -124,7 +133,7 @@ async def match(
     try:
         # CPU-bound work runs in a worker thread, at most MATCH_CONCURRENCY at once, so the event
         # loop stays free for other requests and /health (ADR-0005).
-        return await to_thread.run_sync(
+        result, pages = await to_thread.run_sync(
             _extract_and_match,
             service,
             cv_pdf,
@@ -132,7 +141,10 @@ async def match(
             limiter=request.app.state.cpu_limiter,
         )
     except PdfError as error:
+        log_event("match", outcome=error.code, cv_bytes=len(cv_pdf))
         raise ApiError(422, error.code, error.message) from error
+    log_event("match", outcome="ok", cv_bytes=len(cv_pdf), pages=pages, model=result.model.name)
+    return result
 
 
 app.include_router(api)

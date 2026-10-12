@@ -39,6 +39,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
 ### Security
+- Structured JSON logs with a request ID (also returned as `X-Request-ID`), method, path, status,
+  duration, CV size, page count and outcome code, and nothing else: tests send marked CV and job
+  description text and check it never reaches a log line. Uvicorn's access log, which records
+  client IPs, is switched off.
 - CI audits production dependencies for known vulnerabilities on every pull request:
   `pip-audit` on the backend's locked packages and `npm audit` (high and above) on the frontend's.
 - The rate limit finds the client's IP by counting a configured number of trusted proxies
