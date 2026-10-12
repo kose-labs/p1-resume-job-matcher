@@ -11,8 +11,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app import main
-from app.matching import StubMatchService, get_match_service
+from app.matching import get_match_service
 from app.schemas import MatchResponse
+from tests.fakes import StubMatchService
 from tests.pdfs import TEXT_PDF
 
 JD = "We are hiring a backend engineer to build and run REST APIs in Python with FastAPI. " * 2

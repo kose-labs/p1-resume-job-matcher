@@ -1,10 +1,15 @@
 """The matching service the API calls: built once at startup, injected into each request."""
 
+from pathlib import Path
 from typing import Protocol
 
 from fastapi import Request
 
+from app.ml.tfidf import TfidfMatcher
 from app.schemas import MatchResponse, ModelInfo, Skills
+
+# Fitted on public job descriptions only, rebuilt by scripts/build_tfidf_artifact.py (ADR-0006).
+TFIDF_ARTIFACT = Path(__file__).parent / "ml" / "artifacts" / "tfidf-jds.json.gz"
 
 
 class MatchService(Protocol):
@@ -15,31 +20,35 @@ class MatchService(Protocol):
         ...
 
 
-class StubMatchService:
-    """Placeholder until the real pipeline lands (S9).
+class TfidfMatchService:
+    """Scores with the TF-IDF baseline (K7), fitted on public job descriptions only.
 
-    Returns a valid but empty result, labelled `stub`, so the frontend can be built against the
-    real contract before the model exists.
+    Raw cosine scores are small until they're calibrated against our ratings (J2), so every result
+    carries the `uncalibrated_score` warning. Skills and evidence arrive with K9 and K8.
     """
 
+    def __init__(self, matcher: TfidfMatcher) -> None:
+        """Wrap a fitted matcher."""
+        self.matcher = matcher
+
     def match(self, cv_text: str, job_description: str) -> MatchResponse:
-        """Return an empty result that says it came from the stub."""
+        """Return the TF-IDF cosine similarity of the CV and the job description."""
         return MatchResponse(
-            score=0.0,
+            score=round(self.matcher.score(cv_text, job_description), 4),
             skills=Skills(matched=[], missing=[]),
             evidence=[],
-            model=ModelInfo(name="stub", version="0"),
-            warnings=["stub_model"],
+            model=ModelInfo(name=self.matcher.name, version=self.matcher.version),
+            warnings=["uncalibrated_score"],
         )
 
 
 def load_match_service() -> MatchService:
     """Build the matching service; called once at startup, never per request.
 
-    The stub for now. Loading a real model (fitting TF-IDF, reading embedding weights) is slow,
-    so it happens here, before the server accepts requests, not inside the first match.
+    Loading a model (reading the TF-IDF artefact now, embedding weights maybe later) happens here,
+    before the server accepts requests, not inside the first match.
     """
-    return StubMatchService()
+    return TfidfMatchService(TfidfMatcher.load(TFIDF_ARTIFACT))
 
 
 def get_match_service(request: Request) -> MatchService:

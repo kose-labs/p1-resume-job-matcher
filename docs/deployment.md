@@ -45,7 +45,7 @@ The API writes one JSON line per request, plus one per match, to Render's **Logs
 
 ```json
 {"time": "...", "level": "INFO", "event": "request", "request_id": "3f9c2a1b7d04", "method": "POST", "path": "/api/v1/match", "status": 200, "duration_ms": 412.5}
-{"time": "...", "level": "INFO", "event": "match", "request_id": "3f9c2a1b7d04", "outcome": "ok", "cv_bytes": 48211, "pages": 2, "model": "stub"}
+{"time": "...", "level": "INFO", "event": "match", "request_id": "3f9c2a1b7d04", "outcome": "ok", "cv_bytes": 48211, "pages": 2, "model": "tfidf-baseline"}
 ```
 
 - Every response carries the same ID in an `X-Request-ID` header, so a user's report can be matched

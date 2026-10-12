@@ -7,6 +7,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
+  public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
+  gzipped-JSON artefact that `scripts/build_tfidf_artifact.py` rebuilds byte for byte. Scores are
+  raw cosine similarities flagged `uncalibrated_score`, and the page explains it until they're
+  calibrated against our ratings. `scripts/score_corpus.py --artifact` evaluates the production
+  model.
 - Serving (S9, ADR-0005): the match service loads once at startup (lifespan) and is injected with
   `Depends`; extraction and matching run in worker threads, at most `MATCH_CONCURRENCY` (2) at once,
   so `/health` stays fast during matches. CI now load-tests the Docker image at Render's 512 MB
