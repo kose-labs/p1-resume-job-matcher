@@ -53,7 +53,7 @@ Details and alternatives in **ADR-0001**.
 - **PDF checks:** a few local-only PDFs from the Kaggle Resume Dataset and Semanu's synthetic fixtures.
 
 ## Approach
-Three steps, each measured against the previous one on the same pairs:
+Five steps; each matcher is measured against the previous one on the same pairs:
 
 1. **Preprocessing (K6).** Clean PDF artefacts (hyphenation at line breaks, bullets, ligatures),
    protect tech tokens that naive tokenizers break (`C++`, `C#`, `.NET`, `Node.js`), split into
