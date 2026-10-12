@@ -123,9 +123,10 @@ function Result({ result }: { result: MatchResponse }) {
   return (
     <section aria-label="Match result">
       <h2>Match score: {Math.round(result.score * 100)}%</h2>
-      {result.warnings.includes('stub_model') && (
+      {result.warnings.includes('uncalibrated_score') && (
         <p className="note">
-          The matching model isn't connected yet, so this is a placeholder result.
+          This is a raw text similarity, not yet calibrated against human ratings, so even strong
+          matches score low. Use it to compare jobs for the same CV.
         </p>
       )}
 

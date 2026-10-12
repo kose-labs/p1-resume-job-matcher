@@ -1,4 +1,4 @@
-"""POST /api/v1/match: request validation and upload limits (S7). The matcher is still a stub."""
+"""POST /api/v1/match: request validation, upload limits (S7) and the served model (S9)."""
 
 from collections.abc import Iterator
 
@@ -8,8 +8,9 @@ from starlette.formparsers import MultiPartParser
 
 from app.limits import MAX_CV_BYTES, MAX_REQUEST_BYTES
 from app.main import app
-from app.matching import StubMatchService, get_match_service
+from app.matching import get_match_service
 from app.schemas import MatchResponse
+from tests.fakes import StubMatchService
 from tests.pdfs import TEXT_PDF, image_only_pdf, text_pdf
 
 PDF = TEXT_PDF
@@ -38,8 +39,9 @@ def test_valid_request_returns_the_contract_shape(client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert set(body) == {"score", "skills", "evidence", "model", "warnings"}
-    assert 0 <= body["score"] <= 1
-    assert body["model"]["name"] == "stub"
+    assert 0 < body["score"] <= 1  # the test CV and JD share Python, FastAPI and REST APIs
+    assert body["model"]["name"] == "tfidf-baseline"
+    assert body["warnings"] == ["uncalibrated_score"]
 
 
 def test_file_type_is_checked_by_content_not_name(client: TestClient) -> None:

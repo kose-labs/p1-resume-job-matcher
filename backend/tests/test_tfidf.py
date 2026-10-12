@@ -1,3 +1,7 @@
+import gzip
+import json
+from pathlib import Path
+
 import pytest
 
 from app.ml.tfidf import STOP_WORDS, TfidfMatcher
@@ -61,3 +65,35 @@ def test_scoring_before_fit_fails() -> None:
         TfidfMatcher().score("a", "b")
     with pytest.raises(RuntimeError, match="fit"):
         TfidfMatcher().top_terms("a", "b")
+
+
+def test_saved_matcher_scores_like_the_original(matcher: TfidfMatcher, tmp_path: Path) -> None:
+    path = tmp_path / "tfidf.json.gz"
+    matcher.save(path, {"source": "test corpus"})
+    loaded = TfidfMatcher.load(path)
+    cvs = [CORPUS[k] for k in CORPUS if k.startswith("cv_")]
+    jds = [CORPUS[k] for k in CORPUS if k.startswith("jd_")]
+    assert loaded.score_matrix(cvs, jds) == pytest.approx(matcher.score_matrix(cvs, jds), abs=1e-6)
+    pair = (CORPUS["cv_python"], CORPUS["jd_python"])
+    assert [t for t, _ in loaded.top_terms(*pair)] == [t for t, _ in matcher.top_terms(*pair)]
+
+
+def test_saving_twice_gives_identical_bytes(matcher: TfidfMatcher, tmp_path: Path) -> None:
+    first, second = tmp_path / "a.json.gz", tmp_path / "b.json.gz"
+    matcher.save(first, {})
+    matcher.save(second, {})
+    assert first.read_bytes() == second.read_bytes()
+
+
+def test_saving_before_fit_fails(tmp_path: Path) -> None:
+    with pytest.raises(RuntimeError, match="fit"):
+        TfidfMatcher().save(tmp_path / "x.json.gz", {})
+
+
+def test_loading_an_unknown_format_fails(matcher: TfidfMatcher, tmp_path: Path) -> None:
+    path = tmp_path / "tfidf.json.gz"
+    matcher.save(path, {})
+    data = json.loads(gzip.decompress(path.read_bytes()))
+    path.write_bytes(gzip.compress(json.dumps({**data, "format": 99}).encode()))
+    with pytest.raises(ValueError, match="format 99"):
+        TfidfMatcher.load(path)
