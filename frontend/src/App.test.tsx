@@ -149,8 +149,30 @@ describe('matching', () => {
     fillForm()
     fireEvent.click(screen.getByRole('button', { name: 'Match' }))
     expect(await screen.findByText(/not yet calibrated/)).toBeInTheDocument()
-    expect(screen.getByText('None found.')).toBeInTheDocument()
+    expect(screen.getByText(/No specific skills were recognised/)).toBeInTheDocument()
+    expect(screen.queryByText('None found.')).not.toBeInTheDocument()
     expect(screen.queryByText('Why this score')).not.toBeInTheDocument()
+  })
+
+  it('says which side is empty when only one skill list has entries', async () => {
+    const skills = { matched: [], missing: [{ name: 'Kubernetes' }] }
+    fakeApi(() => Promise.resolve(json({ ...RESULT, skills })))
+    render(<App />)
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Match' }))
+    expect(await screen.findByText('Kubernetes')).toBeInTheDocument()
+    expect(screen.getByText('None found.')).toBeInTheDocument()
+    expect(screen.queryByText(/No specific skills were recognised/)).not.toBeInTheDocument()
+  })
+
+  it('says nothing is missing when the CV covers every recognised skill', async () => {
+    const skills = { matched: [{ name: 'Python', esco_uri: null }], missing: [] }
+    fakeApi(() => Promise.resolve(json({ ...RESULT, skills })))
+    render(<App />)
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Match' }))
+    expect(await screen.findByText('Python')).toBeInTheDocument()
+    expect(screen.getByText('None.')).toBeInTheDocument()
   })
 
   it('shows no calibration note without the warning', async () => {
