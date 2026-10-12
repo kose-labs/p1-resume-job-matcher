@@ -84,7 +84,7 @@ QUERIES = {
 PII_PATTERNS = {
     "[EMAIL]": re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),
     "[URL]": re.compile(r"(?:https?://|www\.)\S+|\b(?:linkedin|github|t)\.(?:com|me)/\S+", re.I),
-    "[PHONE]": re.compile(r"(?<!\w)\+?\d[\d ()\-]{8,}\d(?!\w)"),
+    "[PHONE]": re.compile(r"(?<!\w)[+(]?\d[\d ()\-]{8,}\d(?!\w)"),
 }
 
 
@@ -117,11 +117,27 @@ def download(source: dict[str, str]) -> Path:
     return target
 
 
+def looks_like_phone(match: str) -> bool:
+    """Tell a phone number from date ranges the pattern also matches, such as "2019 - 2021".
+
+    A phone number has at least 9 digits, and its digit groups aren't all years.
+    """
+    groups = re.findall(r"\d+", match)
+    years = all(len(g) == 4 and g.startswith(("19", "20")) for g in groups)
+    return sum(map(len, groups)) >= 9 and not years
+
+
 def scrub(text: str, counts: dict[str, int]) -> str:
     """Replace e-mails, URLs and phone numbers with placeholders, counting each kind."""
     for placeholder, pattern in PII_PATTERNS.items():
-        text, n = pattern.subn(placeholder, text)
-        counts[placeholder] += n
+
+        def replace(m: re.Match[str], placeholder: str = placeholder) -> str:
+            if placeholder == "[PHONE]" and not looks_like_phone(m.group()):
+                return m.group()
+            counts[placeholder] += 1
+            return placeholder
+
+        text = pattern.sub(replace, text)
     return text
 
 

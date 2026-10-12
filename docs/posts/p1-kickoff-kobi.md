@@ -11,7 +11,7 @@ and shows the CV lines behind the score.
 I'm leading the ML side, and the hard part isn't the model. It's knowing whether the score means
 anything. So before writing any model code:
 
-📏 **We built our own test set.** We each rate CV–job pairs from 1 to 5 on our own, check that we
+📏 **We're building our own test set.** We each rate CV–job pairs from 1 to 5 on our own, check that we
 agree, and only then compare the system's scores to ours.
 
 📈 **Every model has to beat a simple baseline.** TF-IDF first, then sentence embeddings, judged

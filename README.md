@@ -46,6 +46,7 @@ uvx pre-commit install
 | Tests | `uv run pytest` (includes coverage) | `npm test` |
 | Coverage (80% minimum) | shown by `uv run pytest` | `npm run test:coverage` |
 | Build | — | `npm run build` |
+| Dependency audit (CI) | `pip-audit` on the production lockfile | `npm audit --omit=dev --audit-level=high` |
 
 **After changing the API** (routes or models), regenerate the frontend's types, then commit both
 files. CI fails if either is out of date.
