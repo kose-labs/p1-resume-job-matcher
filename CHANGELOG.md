@@ -7,6 +7,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Skill extraction (`app.ml.skills`, K9): ESCO v1.2 ICT, statistics, mathematics and digital
+  skills (944, fetched from the ESCO API by `scripts/build_skills_vocab.py`) plus our tech
+  dictionary, matched as whole tokens with the longest label winning; case-sensitive names (Go, R,
+  Spring) and no generic one-word synonyms, for precision. `scripts/skill_eval.py` builds the
+  labelling packet for 20 JDs and reports precision, recall and F1 (guide in
+  `research/skill_labeling_guide.md`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
