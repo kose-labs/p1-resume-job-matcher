@@ -10,6 +10,19 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
+- The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
+  public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
+  gzipped-JSON artefact that `scripts/build_tfidf_artifact.py` rebuilds byte for byte. Scores are
+  raw cosine similarities flagged `uncalibrated_score`, and the page explains it until they're
+  calibrated against our ratings. `scripts/score_corpus.py --artifact` evaluates the production
+  model.
+- Serving (S9, ADR-0005): the match service loads once at startup (lifespan) and is injected with
+  `Depends`; extraction and matching run in worker threads, at most `MATCH_CONCURRENCY` (2) at once,
+  so `/health` stays fast during matches. CI now load-tests the Docker image at Render's 512 MB
+  with four near-5 MB CVs and fails if peak memory passes 400 MB.
+- CV text extraction from uploaded PDFs (ADR-0003): pdfplumber with a column split for two-column
+  CVs, and clear 422 errors for password-protected or damaged files (`pdf_unreadable`), more than
+  10 pages (`pdf_too_many_pages`) and scanned PDFs (`pdf_no_text`). Runs in a worker thread.
 - Evaluation metrics in `app.ml.metrics` (quadratic weighted κ, tie-aware Spearman ρ), tested in CI
   against scikit-learn and SciPy reference values; `scripts/j2-pairs/evaluate.py` uses them.
 - TF-IDF + cosine baseline matcher (`app.ml.tfidf`) and a script that scores every pair of the
@@ -35,6 +48,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Test coverage reports for backend (pytest-cov) and frontend (Vitest), shown in CI with an 80% minimum.
 
 ### Security
+- Structured JSON logs with a request ID (also returned as `X-Request-ID`), method, path, status,
+  duration, CV size, page count and outcome code, and nothing else: tests send marked CV and job
+  description text and check it never reaches a log line. Uvicorn's access log, which records
+  client IPs, is switched off.
 - CI audits production dependencies for known vulnerabilities on every pull request:
   `pip-audit` on the backend's locked packages and `npm audit` (high and above) on the frontend's.
 - The rate limit finds the client's IP by counting a configured number of trusted proxies

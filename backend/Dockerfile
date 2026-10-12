@@ -25,4 +25,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
     CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ[\"PORT\"]}/health')"
 
 # PORT is configurable because hosts differ (Hugging Face Spaces defaults to 7860).
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# --no-access-log: Uvicorn's access log records client IPs; the app logs its own requests
+# without them (app/observability.py).
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --no-access-log"]

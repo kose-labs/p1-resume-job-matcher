@@ -142,15 +142,24 @@ describe('matching', () => {
     expect(await screen.findByText('Match score: 72%')).toBeInTheDocument()
   })
 
-  it('labels a placeholder result from the stub model', async () => {
-    const stub = { ...RESULT, score: 0, skills: { matched: [], missing: [] }, evidence: [] }
-    fakeApi(() => Promise.resolve(json({ ...stub, warnings: ['stub_model'] })))
+  it('explains an uncalibrated score and copes with no skills or evidence', async () => {
+    const bare = { ...RESULT, score: 0.04, skills: { matched: [], missing: [] }, evidence: [] }
+    fakeApi(() => Promise.resolve(json({ ...bare, warnings: ['uncalibrated_score'] })))
     render(<App />)
     fillForm()
     fireEvent.click(screen.getByRole('button', { name: 'Match' }))
-    expect(await screen.findByText(/placeholder result/)).toBeInTheDocument()
+    expect(await screen.findByText(/not yet calibrated/)).toBeInTheDocument()
     expect(screen.getByText('None found.')).toBeInTheDocument()
     expect(screen.queryByText('Why this score')).not.toBeInTheDocument()
+  })
+
+  it('shows no calibration note without the warning', async () => {
+    fakeApi(() => Promise.resolve(json(RESULT)))
+    render(<App />)
+    fillForm()
+    fireEvent.click(screen.getByRole('button', { name: 'Match' }))
+    expect(await screen.findByText('Match score: 72%')).toBeInTheDocument()
+    expect(screen.queryByText(/not yet calibrated/)).not.toBeInTheDocument()
   })
 })
 

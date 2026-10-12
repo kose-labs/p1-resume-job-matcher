@@ -28,6 +28,7 @@ is the Docker image on **Render Free**.
 |---|---|---|---|
 | `CORS_ORIGINS` | Render (`render.yaml`) | `https://kose-labs.github.io` | Only our frontend may call the API from a browser. An origin has no path and no trailing slash. |
 | `TRUSTED_PROXY_HOPS` | Render (`render.yaml`) | `1`, then the number found below | How many proxies append to `X-Forwarded-For`. The rate limit takes the visitor's IP that many entries from the right; entries further left can be forged. |
+| `MATCH_CONCURRENCY` | Not set (default) | `2` | Matches that may use the CPU at once (ADR-0005). CI's memory check confirms two near-5 MB CVs fit; lower to `1` if a heavier model doesn't. |
 | `PORT` | Set by Render | `10000` | The Dockerfile already listens on `$PORT` on `0.0.0.0`. |
 | `VITE_API_URL` | GitHub repo variable | The Render URL | Built into the frontend at build time. |
 
@@ -37,6 +38,21 @@ is the Docker image on **Render Free**.
    15 idle minutes takes about a minute while Render wakes the service.
 2. The frontend shows **"Waking up the server…"**, then **"Server ready."**
 3. A match with a synthetic test PDF returns a result. Never test the live site with a real CV.
+
+## Reading the logs
+
+The API writes one JSON line per request, plus one per match, to Render's **Logs** tab:
+
+```json
+{"time": "...", "level": "INFO", "event": "request", "request_id": "3f9c2a1b7d04", "method": "POST", "path": "/api/v1/match", "status": 200, "duration_ms": 412.5}
+{"time": "...", "level": "INFO", "event": "match", "request_id": "3f9c2a1b7d04", "outcome": "ok", "cv_bytes": 48211, "pages": 2, "model": "tfidf-baseline"}
+```
+
+- Every response carries the same ID in an `X-Request-ID` header, so a user's report can be matched
+  to its log lines by searching for the ID.
+- `outcome` is `ok` or the error code (`pdf_no_text`, `pdf_unreadable`, `pdf_too_many_pages`).
+- **No CV or job description text and no IP addresses are ever logged** (a test enforces the list of
+  allowed fields). Uvicorn's own access log is off for the same reason (`--no-access-log`).
 
 ## Rate limit: finding the proxy count
 

@@ -5,12 +5,10 @@ import asyncio
 from fastapi.testclient import TestClient
 from starlette.types import Message, Receive, Scope, Send
 
-from app.main import app
 from app.ratelimit import RateLimit, RateLimiter, client_ip
+from tests.pdfs import TEXT_PDF
 
-client = TestClient(app)
-
-PDF = b"%PDF-1.7\n% synthetic test file\n"
+PDF = TEXT_PDF
 JD = "We are hiring a backend engineer to build and run REST APIs in Python with FastAPI. " * 2
 
 
@@ -57,7 +55,7 @@ def test_idle_clients_are_forgotten() -> None:
     assert len(limiter._hits) == 1
 
 
-def test_eleventh_match_request_in_a_minute_gets_429() -> None:
+def test_eleventh_match_request_in_a_minute_gets_429(client: TestClient) -> None:
     def post() -> int:
         files = {"cv": ("cv.pdf", PDF, "application/pdf")}
         return client.post("/api/v1/match", files=files, data={"job_description": JD}).status_code
@@ -73,7 +71,7 @@ def test_eleventh_match_request_in_a_minute_gets_429() -> None:
     assert 1 <= int(response.headers["retry-after"]) <= 60
 
 
-def test_other_endpoints_are_not_limited() -> None:
+def test_other_endpoints_are_not_limited(client: TestClient) -> None:
     assert all(client.get("/health").status_code == 200 for _ in range(15))
 
 

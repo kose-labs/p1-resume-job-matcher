@@ -9,14 +9,19 @@ fitted on just one CV and one JD, every shared word would look equally rare and 
 mean nothing.
 """
 
-from collections.abc import Iterable, Sequence
-from typing import Self
+import gzip
+import json
+from collections.abc import Iterable, Mapping, Sequence
+from pathlib import Path
+from typing import Any, Self
 
 import numpy as np
 import numpy.typing as npt
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 
 from app.ml.preprocess import clean_text, tokenize
+
+ARTIFACT_FORMAT = 1  # bump when the saved file's layout changes
 
 # scikit-learn's English stop words, minus words that are also technology names.
 STOP_WORDS = sorted(ENGLISH_STOP_WORDS - {"go", "r", "c", "net", "rest"})
@@ -28,8 +33,14 @@ class TfidfMatcher:
     name = "tfidf-baseline"
     version = "0.1.0"
 
-    def __init__(self, ngram_range: tuple[int, int] = (1, 2), min_df: int = 1) -> None:
-        """Configure the vectorizer; call `fit` before scoring."""
+    def __init__(
+        self,
+        ngram_range: tuple[int, int] = (1, 2),
+        min_df: int = 1,
+        max_features: int | None = None,
+        vocabulary: Mapping[str, int] | None = None,
+    ) -> None:
+        """Configure the vectorizer; call `fit` before scoring (or use `load`)."""
         self.vectorizer = TfidfVectorizer(
             preprocessor=clean_text,
             tokenizer=tokenize,
@@ -38,9 +49,46 @@ class TfidfMatcher:
             stop_words=STOP_WORDS,
             ngram_range=ngram_range,
             min_df=min_df,
+            max_features=max_features,
+            vocabulary=vocabulary,
             sublinear_tf=True,  # 1 + log(tf): ten mentions of "Java" aren't ten times the signal
         )
         self._fitted = False
+
+    def save(self, path: Path, metadata: Mapping[str, Any]) -> None:
+        """Write the fitted vocabulary and IDF weights as gzipped JSON, plus provenance metadata.
+
+        JSON, not pickle: loading the file can't run code. `gzip.compress` with `mtime=0` leaves the
+        time and the file name out of the gzip header, so the bytes depend only on the content and
+        rebuilding from the same inputs gives an identical file.
+        """
+        if not self._fitted:
+            raise RuntimeError("call fit() before saving")
+        data = {
+            "format": ARTIFACT_FORMAT,
+            "name": self.name,
+            "version": self.version,
+            "ngram_range": list(self.vectorizer.ngram_range),
+            **metadata,
+            "vocabulary": self.vectorizer.get_feature_names_out().tolist(),
+            "idf": [round(float(weight), 6) for weight in self.vectorizer.idf_],
+        }
+        raw = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        path.write_bytes(gzip.compress(raw, mtime=0))
+
+    @classmethod
+    def load(cls, path: Path) -> "TfidfMatcher":
+        """Rebuild a fitted matcher from a file written by `save`."""
+        with gzip.open(path, "rb") as f:
+            data = json.loads(f.read())
+        if data.get("format") != ARTIFACT_FORMAT:
+            raise ValueError(f"{path}: unsupported artefact format {data.get('format')!r}")
+        vocabulary = {term: index for index, term in enumerate(data["vocabulary"])}
+        matcher = cls(ngram_range=tuple(data["ngram_range"]), vocabulary=vocabulary)
+        matcher.vectorizer.idf_ = np.asarray(data["idf"], dtype=np.float64)
+        matcher.version = str(data["version"])
+        matcher._fitted = True
+        return matcher
 
     def fit(self, corpus: Iterable[str]) -> Self:
         """Learn the vocabulary and IDF weights from all CVs and JDs of the corpus."""
