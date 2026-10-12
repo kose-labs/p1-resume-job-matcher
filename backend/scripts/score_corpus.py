@@ -8,18 +8,23 @@ Until the rated pairs exist (J2) there is no Spearman ρ yet, so it also prints 
 how well the score separates same-field pairs from unrelated ones (ROC AUC, 0.5 = chance).
 
 Run from `backend/`:  uv run python -m scripts.score_corpus
+
+With `--artifact` it scores with the production model instead (ADR-0006): the artefact fitted on
+public job descriptions, without refitting, written to `data/scores/tfidf-production.csv`.
 """
 
+import argparse
 import csv
 import json
 from itertools import product
 from pathlib import Path
 
+from app.matching import TFIDF_ARTIFACT
 from app.ml.tfidf import TfidfMatcher
 
 ROOT = Path(__file__).resolve().parents[2]
 CORPUS = ROOT / "data" / "corpus"
-OUT = ROOT / "data" / "scores" / "tfidf-baseline.csv"
+SCORES = ROOT / "data" / "scores"
 # Fields close enough that a pair could be a partial match (annotation protocol, "nearby").
 NEARBY = {
     frozenset({"Python", "Data Science"}),
@@ -48,14 +53,22 @@ def auc(positives: list[float], negatives: list[float]) -> float:
 
 
 def main() -> None:
-    """Fit on the corpus, score all pairs, write the CSV and print the sanity check."""
+    """Fit on the corpus (or load the artefact), score all pairs, write the CSV, print the check."""
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--artifact", action="store_true", help="score with the production model")
+    args = parser.parse_args()
+
     cvs, jds = load("cvs.jsonl"), load("jds.jsonl")
-    matcher = TfidfMatcher().fit([d["text"] for d in cvs + jds])
+    if args.artifact:
+        matcher, out = TfidfMatcher.load(TFIDF_ARTIFACT), SCORES / "tfidf-production.csv"
+    else:
+        matcher = TfidfMatcher().fit([d["text"] for d in cvs + jds])
+        out = SCORES / "tfidf-baseline.csv"
     scores = matcher.score_matrix([d["text"] for d in cvs], [d["text"] for d in jds])
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
     by_relation: dict[str, list[float]] = {"same": [], "nearby": [], "unrelated": []}
-    with OUT.open("w", newline="", encoding="utf-8") as f:
+    with out.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["cv_id", "jd_id", "relation", "score"])
         for (i, cv), (j, jd) in product(enumerate(cvs), enumerate(jds)):
@@ -65,7 +78,7 @@ def main() -> None:
             writer.writerow([cv["id"], jd["id"], rel, f"{score:.4f}"])
 
     print(
-        f"{matcher.name} {matcher.version}: {len(cvs) * len(jds)} pairs -> {OUT.relative_to(ROOT)}"
+        f"{matcher.name} {matcher.version}: {len(cvs) * len(jds)} pairs -> {out.relative_to(ROOT)}"
     )
     print(f"vocabulary: {len(matcher.vectorizer.vocabulary_)} terms (1-2 grams)")
     for rel, values in by_relation.items():
