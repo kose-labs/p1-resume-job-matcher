@@ -28,9 +28,13 @@ What it guarantees:
 Open `packet-calibration.html` in a browser and fill in rows p001–p020 of your sheet. Don't
 discuss pairs until both sheets are done.
 
-## 3. Check agreement
+## 3. Share the sheets and check agreement
+
+Only when **both** of you have finished the batch, each copies their sheet into the repo and
+commits it (IDs, ratings and short notes only, never CV or JD text):
 
 ```bash
+cp ../../data/ratings/<you>.csv ../../research/ratings/<you>.csv
 uv run python evaluate.py agreement
 ```
 
