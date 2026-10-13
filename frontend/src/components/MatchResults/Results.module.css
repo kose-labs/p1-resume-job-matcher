@@ -58,6 +58,34 @@
   appearance: none;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .meter {
+    animation: draw-in var(--duration-reveal) var(--ease) both;
+  }
+
+  .skeletonLine,
+  .skeletonValue {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes draw-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+/* 2. The loading placeholder breathes gently while the match runs. */
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
 .meter::-webkit-meter-bar {
   height: 4px;
   border: 0;

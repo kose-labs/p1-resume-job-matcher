@@ -67,6 +67,18 @@ a {
   white-space: nowrap;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition:
+      background-color var(--duration-theme) var(--ease),
+      border-color var(--duration-theme) var(--ease),
+      color var(--duration-theme) var(--ease) !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -12,6 +12,7 @@ afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
   delete document.documentElement.dataset.theme
+  document.documentElement.classList.remove('theme-transition')
 })
 
 describe('theme toggle', () => {
@@ -41,6 +42,18 @@ describe('theme toggle', () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('button', { name: /^Theme:/ }))
     expect(document.documentElement.dataset.theme).toBe('light')
+  })
+
+  it('fades colours briefly when switching theme, but not on first load', () => {
+    vi.useFakeTimers()
+    render(<Harness />)
+    const root = document.documentElement
+    expect(root).not.toHaveClass('theme-transition')
+    fireEvent.click(screen.getByRole('button', { name: /^Theme:/ }))
+    expect(root).toHaveClass('theme-transition')
+    vi.advanceTimersByTime(200)
+    expect(root).not.toHaveClass('theme-transition')
+    vi.useRealTimers()
   })
 
   it('names the next theme in its tooltip', () => {

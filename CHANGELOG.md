@@ -13,8 +13,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   The report shows the score in mono with a provisional band (Low / Moderate / Strong, from the
   deployed model's scores on our evaluation pairs), a flat meter, skills as matched / missing tags,
   evidence when available, and the model and round-trip time. Empty, loading (skeleton), success
-  and error states, each error with a next step; Ctrl/Cmd + Enter runs a match. Lighthouse
-  accessibility 100, and no axe violations in any state or theme.
+  and error states, each error with a next step; Ctrl/Cmd + Enter runs a match. Subtle motion
+  (the score bar draws in, the loading skeleton pulses, buttons press, theme changes fade), all off
+  with reduced motion. Lighthouse accessibility 100, and no axe violations in any state or theme.
 - "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
 - Skill extraction (`app.ml.skills`, K9): ESCO v1.2 ICT, statistics, mathematics and digital
