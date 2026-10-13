@@ -169,7 +169,20 @@ def tokenize(text: str) -> list[str]:
     Keeps one-letter and stop-word-like tech names ("c", "r", "go"): removing stop words is the
     vectorizer's job, with a list that leaves them in.
     """
-    tokens: list[str] = []
-    for token in _TOKEN.findall(text.lower()):
-        tokens.extend(TECH_ALIASES.get(token, token).split())
-    return tokens
+    return [token for token, _ in token_spans(text)]
+
+
+def token_spans(text: str) -> list[tuple[str, str]]:
+    """`tokenize`, with each token paired with the original text it came from.
+
+    Skill extraction needs the original casing to tell "Go" the language from "go" the verb.
+    An alias that becomes two tokens ("ML" -> "machine learning") gives both the same original.
+    """
+    lowered = text.lower()
+    # lower() keeps positions for almost all text; where it doesn't, fall back to the lowercase.
+    original = text if len(lowered) == len(text) else lowered
+    spans: list[tuple[str, str]] = []
+    for match in _TOKEN.finditer(lowered):
+        source = original[match.start() : match.end()]
+        spans.extend((token, source) for token in TECH_ALIASES.get(match[0], match[0]).split())
+    return spans
