@@ -66,6 +66,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
+  seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - Rating sheets are shared in `research/ratings/<rater>.csv` once both raters finish a batch; `evaluate.py` reads them from there (we still rate in the git-ignored `data/ratings/`).
 - ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
