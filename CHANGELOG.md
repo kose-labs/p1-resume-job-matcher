@@ -7,6 +7,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Draft of Kobi's P1 build note (`docs/posts/p1-build-note-kobi.md`), for review before J3.
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
