@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
+  similarity, weighted mean of best matches, top pairs as evidence; model comparison in
+  `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
 - Skill extraction (`app.ml.skills`, K9): ESCO v1.2 ICT, statistics, mathematics and digital
   skills (944, fetched from the ESCO API by `scripts/build_skills_vocab.py`) plus our tech
   dictionary, matched as whole tokens with the longest label winning; case-sensitive names (Go, R,
