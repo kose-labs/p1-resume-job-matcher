@@ -17,6 +17,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
   accessibility 100, and no axe violations in any state or theme.
 - "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
+- Skill extraction (`app.ml.skills`, K9): ESCO v1.2 ICT, statistics, mathematics and digital
+  skills (944, fetched from the ESCO API by `scripts/build_skills_vocab.py`) plus our tech
+  dictionary, matched as whole tokens with the longest label winning; case-sensitive names (Go, R,
+  Spring) and no generic one-word synonyms, for precision. `scripts/skill_eval.py` builds the
+  labelling packet for 20 JDs and reports precision, recall and F1 (guide in
+  `research/skill_labeling_guide.md`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
@@ -70,6 +76,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
   not as a percentage, which read as a probability of fit.
 - A match request still open after 60 s ends with a timeout message instead of spinning forever.
+- ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.

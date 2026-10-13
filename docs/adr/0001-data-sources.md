@@ -1,6 +1,6 @@
 # ADR-0001: Data sources for P1
 
-**Status:** proposed · **Date:** 2026-10-10 · **Deciders:** Kobi, Semanu (accept at the kickoff sync)
+**Status:** accepted (2026-10-12) · **Date:** 2026-10-10 · **Deciders:** Kobi, Semanu
 
 ## Context
 The matcher has no training step at first (TF-IDF, then a pretrained embedding model), but we need
@@ -38,7 +38,7 @@ Constraints:
 | Our own CVs (Kobi, Semanu) | Our consent | 2 | **Yes** | Stored only in `private-data/` outside the repo. For demo sanity checks only, **not in the evaluation set**: we know them too well to rate them blind. |
 | Synthetic CVs (Semanu's S6 fixtures) | Ours | 6 PDFs | None | Already used for the parser comparison and API tests. |
 
-## Decision (proposed)
+## Decision
 - **Evaluation corpus (K5): Djinni for both sides.** 30 English JDs and 30 English CVs, 5 of each
   from six fields: Python, Data Science, JavaScript, Java, DevOps, QA. That gives same-field pairs
   (likely matches), nearby-field pairs (Python ↔ Data Science, QA ↔ DevOps) and unrelated pairs.
