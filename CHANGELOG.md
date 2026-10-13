@@ -60,11 +60,14 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
+- The result page no longer shows "None found" and "None" for skills when none were recognised in
+  the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
   service's root directory (`backend/`), where Render resolves them. The first deploy failed looking
   for `backend/backend`.

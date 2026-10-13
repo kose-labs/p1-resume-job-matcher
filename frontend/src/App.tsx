@@ -130,27 +130,7 @@ function Result({ result }: { result: MatchResponse }) {
         </p>
       )}
 
-      <h3>Skills the CV covers</h3>
-      {result.skills.matched.length ? (
-        <ul>
-          {result.skills.matched.map((skill) => (
-            <li key={skill.name}>{skill.name}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>None found.</p>
-      )}
-
-      <h3>Skills the CV is missing</h3>
-      {result.skills.missing.length ? (
-        <ul>
-          {result.skills.missing.map((skill) => (
-            <li key={skill.name}>{skill.name}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>None.</p>
-      )}
+      <SkillLists skills={result.skills} />
 
       {result.evidence.length > 0 && (
         <>
@@ -170,5 +150,38 @@ function Result({ result }: { result: MatchResponse }) {
         Model: {result.model.name} v{result.model.version}
       </p>
     </section>
+  )
+}
+
+function SkillLists({ skills }: { skills: MatchResponse['skills'] }) {
+  // Both lists empty means no skills were recognised in the job description at all (also the case
+  // until skill extraction lands): one honest line instead of "None found" next to "None".
+  if (!skills.matched.length && !skills.missing.length) {
+    return <p className="note">No specific skills were recognised in this job description.</p>
+  }
+  return (
+    <>
+      <h3>Skills the CV covers</h3>
+      {skills.matched.length ? (
+        <ul>
+          {skills.matched.map((skill) => (
+            <li key={skill.name}>{skill.name}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>None found.</p>
+      )}
+
+      <h3>Skills the CV is missing</h3>
+      {skills.missing.length ? (
+        <ul>
+          {skills.missing.map((skill) => (
+            <li key={skill.name}>{skill.name}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>None.</p>
+      )}
+    </>
   )
 }
