@@ -9,8 +9,11 @@ import '@fontsource/ibm-plex-mono/latin-400.css'
 import '@fontsource/ibm-plex-mono/latin-500.css'
 import './styles/tokens.css'
 import './styles/base.css'
-import './index.css'
 import App from './App.tsx'
+import { applyTheme, readTheme } from './lib/theme'
+
+// Before the first render, so a saved theme doesn't flash the other one.
+applyTheme(readTheme())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

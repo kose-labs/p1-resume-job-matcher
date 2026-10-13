@@ -7,9 +7,14 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Redesigned match page: clear sections, a drag-and-drop CV area showing the chosen file, a server
-  status pill, a result card with a score bar, skill chips and evidence cards, light and dark
-  themes, and a "How it works" section. On a phone the page moves to the result when it arrives.
+- Redesigned match page as a two-pane workspace: inputs on the left, a sticky results report on the
+  right (one column on phones). Design tokens for colour, type, spacing and radius; light theme by
+  default, a true-neutral dark theme and a manual theme toggle; IBM Plex Sans and Mono, self-hosted.
+  The report shows the score in mono with a provisional band (Low / Moderate / Strong, from the
+  deployed model's scores on our evaluation pairs), a flat meter, skills as matched / missing tags,
+  evidence when available, and the model and round-trip time. Empty, loading (skeleton), success
+  and error states, each error with a next step; Ctrl/Cmd + Enter runs a match. Lighthouse
+  accessibility 100, and no axe violations in any state or theme.
 - "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
@@ -62,8 +67,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
-- An uncalibrated score is shown as "Text similarity: 0.34", not as a percentage, which read as a
-  probability of fit.
+- An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
+  not as a percentage, which read as a probability of fit.
+- A match request still open after 60 s ends with a timeout message instead of spinning forever.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.

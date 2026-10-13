@@ -56,4 +56,23 @@ describe('matchCv', () => {
       error: { status: 0, code: 'timeout', message: 'The server took too long to answer.' },
     })
   })
+
+  it('explains a validation error without our error body in plain words', async () => {
+    const detail = [{ loc: ['body', 'job_description'], msg: 'too short' }]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(Response.json({ detail }, { status: 422 }))),
+    )
+    const outcome = await matchCv(PDF, JD)
+    expect(!outcome.ok && outcome.error.code).toBe('invalid_input')
+  })
+
+  it('falls back to a generic failure for an unexpected error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(new Response('oops', { status: 500 }))),
+    )
+    const outcome = await matchCv(PDF, JD)
+    expect(!outcome.ok && outcome.error).toMatchObject({ status: 500, code: 'unknown_error' })
+  })
 })
