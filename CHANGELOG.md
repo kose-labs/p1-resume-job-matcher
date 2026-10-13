@@ -7,6 +7,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
   gzipped-JSON artefact that `scripts/build_tfidf_artifact.py` rebuilds byte for byte. Scores are
@@ -62,6 +63,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
+- The result page no longer shows "None found" and "None" for skills when none were recognised in
+  the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
   service's root directory (`backend/`), where Render resolves them. The first deploy failed looking
   for `backend/backend`.
