@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from app.ml.embeddings import (
+    CV_CHUNK_LIMIT,
     WINDOW_WORDS,
     EmbeddingMatcher,
     Matrix,
@@ -127,10 +128,27 @@ def test_empty_documents_score_zero_without_calling_the_model() -> None:
 
 def test_evidence_size_is_capped() -> None:
     jd = "Requirements:\n" + "\n".join(f"- Skill number {i} with tools" for i in range(10))
-    result = EmbeddingMatcher(BagOfWords(), "fake", evidence_size=3).match(
-        "- Skill number 1 with tools", jd
-    )
+    cv = "\n".join(f"- Skill number {i} with tools" for i in range(10))
+    result = EmbeddingMatcher(BagOfWords(), "fake", evidence_size=3).match(cv, jd)
     assert len(result.evidence) == 3
+
+
+def test_evidence_shows_each_cv_sentence_once() -> None:
+    # One CV sentence is the best match for every requirement: it's shown once, for the best one.
+    jd = "Requirements:\n" + "\n".join(f"- Skill number {i} with tools" for i in range(5))
+    result = EmbeddingMatcher(BagOfWords(), "fake").match("- Skill number 1 with tools", jd)
+    assert [e.requirement for e in result.evidence] == ["Skill number 1 with tools"]
+
+
+def test_long_cv_is_matched_on_its_first_chunks_and_flagged() -> None:
+    matcher = EmbeddingMatcher(BagOfWords(), "fake")
+    lines = [f"- Built service number {i} for clients" for i in range(CV_CHUNK_LIMIT)]
+    assert not matcher.match("\n".join(lines), JD).cv_truncated
+    longer = matcher.match("\n".join([*lines, "- Experience with PostgreSQL databases"]), JD)
+    assert longer.cv_truncated
+    # The sentence past the cap isn't used, so it can't be evidence.
+    assert all("PostgreSQL" not in e.cv_excerpt for e in longer.evidence)
+    assert len(cv_sentences("\n".join(lines * 2))) == CV_CHUNK_LIMIT
 
 
 @pytest.mark.parametrize("text", ["", "Hi", "Requirements:"])

@@ -73,6 +73,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
+- Embedding matcher: a CV longer than 150 chunks (about 4 pages) is no longer cut silently. The
+  result now says so (`cv_truncated`), ready for an API warning. Evidence shows each CV sentence once.
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
