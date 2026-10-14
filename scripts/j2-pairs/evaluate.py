@@ -3,6 +3,7 @@
     uv run python evaluate.py agreement            # κ between the two raters, plus disagreements
     uv run python evaluate.py score <scores.csv>   # Spearman ρ of a model's scores vs our ratings
     uv run python evaluate.py compare ../../data/scores/*.csv   # every model against TF-IDF
+    uv run python evaluate.py gaps <scores.csv>    # the pairs where model and ratings disagree most
 
 `agreement` compares `research/ratings/kobi.csv` and `research/ratings/semanu.csv` (committed once
 both of us have finished a batch, see the protocol) on the pairs both have rated: quadratic
@@ -19,6 +20,11 @@ aren't independent.
 bootstrap: each resample of JDs scores every model, so the CI is for the gap itself. That's the
 ADR-0004 rule: a model replaces TF-IDF if its ρ is at least 0.55 and at least 0.10 above it.
 
+`gaps` is the failure analysis for the model card: it puts the model's scores and our mean ratings
+on the same 0–1 scale (percentile ranks, since only the order matters for ρ) and lists the pairs
+where they disagree most, with which way the model is wrong. It prints IDs only, never CV or JD
+text: read a pair in `data/pairs/packet-main.html` or the calibration packet.
+
 The metric functions live in `backend/app/ml/metrics.py`, where CI tests them against
 scikit-learn and SciPy reference values.
 """
@@ -34,7 +40,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "backend"))  # use the tested metric code
 
-from app.ml.metrics import LEVELS, spearman, weighted_kappa  # noqa: E402
+from app.ml.metrics import LEVELS, ranks, spearman, weighted_kappa  # noqa: E402
 
 PAIRS = ROOT / "data" / "pairs" / "pairs.jsonl"
 RATINGS = ROOT / "research" / "ratings"  # shared copies; we rate in data/ratings/
@@ -159,6 +165,33 @@ def compare(paths: list[Path], split: str, rounds: int) -> None:
     print(f"\nrule (ADR-0004): {rule}; read the Δρ CI before deciding")
 
 
+def gaps(path: Path, split: str, top: int) -> None:
+    """Print the pairs whose model rank and rating rank differ most."""
+    pairs = {(p["cv_id"], p["jd_id"]): (pid, p) for pid, p in load_pairs().items()}
+    rows = [x for group in rated_by_jd(split).values() for x in group]
+    scores = read_scores(path)
+    model = ranks([scores[key] for key, _ in rows])
+    rated = ranks([rating for _, rating in rows])
+    n = len(rows)
+
+    def scale(r: float) -> float:
+        return (r - 1) / (n - 1) if n > 1 else 0.0  # rank 1..n -> 0..1
+
+    found = []
+    for (key, rating), m, h in zip(rows, model, rated, strict=True):
+        pid, pair = pairs[key]
+        found.append((scale(m) - scale(h), pid, pair, rating, scores[key]))
+    found.sort(key=lambda f: -abs(f[0]))
+    print(f"{path.name} on {split}: the {min(top, n)} largest of {n} rank gaps (0–1 scale)")
+    print(f"{'pair':<6} {'cv':<22} {'jd':<22} {'stratum':<10} {'rating':>6} {'score':>7}  gap")
+    for gap, pid, pair, rating, value in found[:top]:
+        way = "model too high" if gap > 0 else "model too low"
+        print(
+            f"{pid:<6} {pair['cv_id']:<22} {pair['jd_id']:<22} {pair['stratum']:<10} "
+            f"{rating:>6.1f} {value:>7.4f}  {gap:+.2f} {way}"
+        )
+
+
 def main() -> None:
     """Parse the command line and run the chosen report."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -172,8 +205,14 @@ def main() -> None:
     cp.add_argument("scores", type=Path, nargs="+")
     cp.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     cp.add_argument("--rounds", type=int, default=2000)
+    gp = sub.add_parser("gaps", help="pairs where the model and our ratings disagree most")
+    gp.add_argument("scores", type=Path)
+    gp.add_argument("--split", choices=["dev", "test", "all"], default="dev")
+    gp.add_argument("--top", type=int, default=10)
     args = parser.parse_args()
-    if args.command == "agreement":
+    if args.command == "gaps":
+        gaps(args.scores, args.split, args.top)
+    elif args.command == "agreement":
         agreement()
     elif args.command == "compare":
         compare(args.scores, args.split, args.rounds)

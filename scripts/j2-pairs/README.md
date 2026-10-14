@@ -63,5 +63,12 @@ Each model gets its ρ and its gap to the deployed TF-IDF (`tfidf-production.csv
 95% CI** from a paired bootstrap (every resample scores every model). The rule is ρ ≥ 0.55 and
 Δρ ≥ 0.10. On dev the Δρ interval will be wide, so a gap is a reason to prefer a model, not proof.
 
+For the model card's failure analysis, list the pairs where a model and our ratings disagree most
+(IDs only; read the texts in the packets):
+
+```bash
+uv run python evaluate.py gaps ../../data/scores/tfidf-production.csv --split test --top 10
+```
+
 The κ and ρ functions are checked against scikit-learn's `cohen_kappa_score(weights="quadratic")` and
 SciPy's `spearmanr` (identical to floating-point precision).
