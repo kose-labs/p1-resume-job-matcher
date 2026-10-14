@@ -53,5 +53,15 @@ resamples **job descriptions**, because pairs that share a JD aren't independent
 intervals on dev (40 pairs from 10 JDs): use dev to compare settings, and run test once per model
 version for the model card.
 
+To choose a model (ADR-0004), compare them all on the same pairs:
+
+```bash
+uv run python evaluate.py compare ../../data/scores/*.csv
+```
+
+Each model gets its ρ and its gap to the deployed TF-IDF (`tfidf-production.csv`), **Δρ with its own
+95% CI** from a paired bootstrap (every resample scores every model). The rule is ρ ≥ 0.55 and
+Δρ ≥ 0.10. On dev the Δρ interval will be wide, so a gap is a reason to prefer a model, not proof.
+
 The κ and ρ functions are checked against scikit-learn's `cohen_kappa_score(weights="quadratic")` and
 SciPy's `spearmanr` (identical to floating-point precision).

@@ -2,6 +2,7 @@
 
     uv run python evaluate.py agreement            # κ between the two raters, plus disagreements
     uv run python evaluate.py score <scores.csv>   # Spearman ρ of a model's scores vs our ratings
+    uv run python evaluate.py compare ../../data/scores/*.csv   # every model against TF-IDF
 
 `agreement` compares `research/ratings/kobi.csv` and `research/ratings/semanu.csv` (committed once
 both of us have finished a batch, see the protocol) on the pairs both have rated: quadratic
@@ -12,6 +13,11 @@ joins it to the pairs both raters have rated, and reports Spearman ρ against th
 **dev** split by default (`--split test` for the frozen final numbers), with a 95% bootstrap
 confidence interval that resamples **job descriptions**, not pairs, because pairs that share a JD
 aren't independent.
+
+`compare` scores several models on the same pairs and puts each next to the baseline
+(`tfidf-production.csv`, the deployed model) with **Δρ and its own 95% CI**, from a paired
+bootstrap: each resample of JDs scores every model, so the CI is for the gap itself. That's the
+ADR-0004 rule: a model replaces TF-IDF if its ρ is at least 0.55 and at least 0.10 above it.
 
 The metric functions live in `backend/app/ml/metrics.py`, where CI tests them against
 scikit-learn and SciPy reference values.
@@ -73,33 +79,84 @@ def agreement() -> None:
         print(f"  {p}: {RATERS[0]} {a[p]}, {RATERS[1]} {b[p]}")
 
 
-def score(path: Path, split: str, rounds: int) -> None:
-    """Print Spearman ρ of model scores vs mean ratings, with a JD-level bootstrap CI."""
+BASELINE = "tfidf-production.csv"
+TARGET_RHO, TARGET_GAIN = 0.55, 0.10  # ADR-0004 / project plan
+
+
+def read_scores(path: Path) -> dict[tuple[str, str], float]:
+    """Return (cv_id, jd_id) -> score from a `cv_id,jd_id,score` CSV."""
+    with path.open(encoding="utf-8") as f:
+        return {(r["cv_id"], r["jd_id"]): float(r["score"]) for r in csv.DictReader(f)}
+
+
+def rated_by_jd(split: str) -> dict[str, list[tuple[tuple[str, str], float]]]:
+    """JD -> [((cv_id, jd_id), mean rating)] for the pairs both raters rated in the split."""
     pairs = load_pairs()
     a, b = (read_ratings(r) for r in RATERS)
-    with path.open(encoding="utf-8") as f:
-        scores = {(r["cv_id"], r["jd_id"]): float(r["score"]) for r in csv.DictReader(f)}
-
-    by_jd: dict[str, list[tuple[float, float]]] = defaultdict(list)
+    by_jd: dict[str, list[tuple[tuple[str, str], float]]] = defaultdict(list)
     # Sorted: set order changes between runs, which would make the bootstrap unrepeatable.
     for pid in sorted(a.keys() & b.keys()):
         p = pairs[pid]
-        if split != "all" and p["split"] != split:
-            continue
-        by_jd[p["jd_id"]].append((scores[(p["cv_id"], p["jd_id"])], (a[pid] + b[pid]) / 2))
-    flat = [x for group in by_jd.values() for x in group]
-    if len(flat) < 3:
-        raise SystemExit(f"only {len(flat)} rated pairs in split '{split}'")
+        if split == "all" or p["split"] == split:
+            by_jd[p["jd_id"]].append(((p["cv_id"], p["jd_id"]), (a[pid] + b[pid]) / 2))
+    if sum(map(len, by_jd.values())) < 3:
+        raise SystemExit(f"fewer than 3 rated pairs in split '{split}'")
+    return by_jd
 
-    rho = spearman([s for s, _ in flat], [r for _, r in flat])
-    rng, jds, samples = random.Random(0), sorted(by_jd), []
-    for _ in range(rounds):
-        resampled = [x for jd in rng.choices(jds, k=len(jds)) for x in by_jd[jd]]
-        samples.append(spearman([s for s, _ in resampled], [r for _, r in resampled]))
-    samples.sort()
-    low, high = samples[int(0.025 * rounds)], samples[int(0.975 * rounds) - 1]
-    print(f"{path.name} on {split}: {len(flat)} pairs from {len(jds)} JDs")
+
+def _rho(scores: dict[tuple[str, str], float], rows: list[tuple[tuple[str, str], float]]) -> float:
+    return spearman([scores[key] for key, _ in rows], [rating for _, rating in rows])
+
+
+def _bootstrap(
+    by_jd: dict[str, list[tuple[tuple[str, str], float]]], rounds: int
+) -> list[list[tuple[tuple[str, str], float]]]:
+    """Resamples of JDs (with replacement), the same for every model so gaps are paired."""
+    rng, jds = random.Random(0), sorted(by_jd)
+    return [[x for jd in rng.choices(jds, k=len(jds)) for x in by_jd[jd]] for _ in range(rounds)]
+
+
+def _ci(samples: list[float]) -> tuple[float, float]:
+    ordered = sorted(samples)
+    return ordered[int(0.025 * len(ordered))], ordered[int(0.975 * len(ordered)) - 1]
+
+
+def score(path: Path, split: str, rounds: int) -> None:
+    """Print Spearman ρ of model scores vs mean ratings, with a JD-level bootstrap CI."""
+    by_jd, scores = rated_by_jd(split), read_scores(path)
+    flat = [x for group in by_jd.values() for x in group]
+    low, high = _ci([_rho(scores, sample) for sample in _bootstrap(by_jd, rounds)])
+    print(f"{path.name} on {split}: {len(flat)} pairs from {len(by_jd)} JDs")
+    rho = _rho(scores, flat)
     print(f"Spearman ρ = {rho:.3f}  (95% bootstrap CI over JDs: {low:.3f} to {high:.3f})")
+
+
+def compare(paths: list[Path], split: str, rounds: int) -> None:
+    """Print ρ for every model and its gap to the baseline, with paired bootstrap CIs."""
+    baseline = next((p for p in paths if p.name == BASELINE), None)
+    if baseline is None:
+        raise SystemExit(f"include the baseline, {BASELINE}, among the score files")
+    by_jd = rated_by_jd(split)
+    flat = [x for group in by_jd.values() for x in group]
+    samples = _bootstrap(by_jd, rounds)
+    base = read_scores(baseline)
+    base_rhos = [_rho(base, sample) for sample in samples]
+    print(f"{split}: {len(flat)} pairs from {len(by_jd)} JDs, {rounds} bootstrap rounds over JDs")
+    print(f"{'model':<28} {'ρ':>6}  {'95% CI':<15} {'Δρ vs TF-IDF':>12}  {'95% CI':<15} meets rule")
+    for path in sorted(paths, key=lambda p: (p != baseline, p.name)):
+        scores = read_scores(path)
+        rho, rhos = _rho(scores, flat), [_rho(scores, sample) for sample in samples]
+        low, high = _ci(rhos)
+        line = f"{path.stem:<28} {rho:>6.3f}  {low:.3f} to {high:.3f}"
+        if path == baseline:
+            print(f"{line}  {'(baseline)':>12}")
+            continue
+        gain = rho - _rho(base, flat)
+        g_low, g_high = _ci([m - b for m, b in zip(rhos, base_rhos, strict=True)])
+        ok = rho >= TARGET_RHO and gain >= TARGET_GAIN
+        print(f"{line}  {gain:>+12.3f}  {g_low:+.3f} to {g_high:+.3f} {'yes' if ok else 'no'}")
+    rule = f"ρ ≥ {TARGET_RHO} and Δρ ≥ {TARGET_GAIN}"
+    print(f"\nrule (ADR-0004): {rule}; read the Δρ CI before deciding")
 
 
 def main() -> None:
@@ -111,9 +168,15 @@ def main() -> None:
     sc.add_argument("scores", type=Path)
     sc.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     sc.add_argument("--rounds", type=int, default=2000)
+    cp = sub.add_parser("compare", help="ρ of several models and their gap to TF-IDF")
+    cp.add_argument("scores", type=Path, nargs="+")
+    cp.add_argument("--split", choices=["dev", "test", "all"], default="dev")
+    cp.add_argument("--rounds", type=int, default=2000)
     args = parser.parse_args()
     if args.command == "agreement":
         agreement()
+    elif args.command == "compare":
+        compare(args.scores, args.split, args.rounds)
     else:
         score(args.scores, args.split, args.rounds)
 

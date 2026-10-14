@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `evaluate.py compare` scores every model on the same rated pairs, with each model's gap to
+  the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
