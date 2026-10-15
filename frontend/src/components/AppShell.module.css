@@ -1,0 +1,54 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.workspace {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.pane {
+  min-width: 0;
+  padding: var(--space-6) var(--space-4);
+}
+
+.paneTitle {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.results {
+  border-top: var(--border);
+  background: var(--color-bg-subtle);
+}
+
+@media (min-width: 640px) {
+  .pane {
+    padding: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    border-inline: var(--border);
+  }
+
+  .results {
+    border-top: 0;
+    border-left: var(--border);
+  }
+
+  /* The pane's background runs the full height; its content stays in view while inputs scroll. */
+  .sticky {
+    position: sticky;
+    top: var(--space-6);
+  }
+}

@@ -1,0 +1,105 @@
+.bar {
+  border-bottom: var(--border);
+  background: var(--color-bg);
+}
+
+/* As wide as the workspace below, with the same side padding, so the left edges line up. */
+.inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  max-width: var(--content-max);
+  min-height: var(--topbar-height);
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4);
+}
+
+.brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.wordmark {
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.separator {
+  color: var(--color-border-strong);
+}
+
+.product {
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  font-weight: var(--weight-regular);
+  letter-spacing: normal;
+}
+
+.badge {
+  padding: 0 var(--space-1);
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-warning);
+}
+
+.status[data-server='ready'] .dot {
+  background: var(--color-success);
+}
+
+.status[data-server='down'] .dot {
+  background: var(--color-danger);
+}
+
+.link {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  text-decoration-color: var(--color-border-strong);
+}
+
+.link:hover {
+  text-decoration-color: currentcolor;
+}
+
+@media (min-width: 640px) {
+  .inner {
+    padding: var(--space-2) var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  /* The workspace has a 1px border on each side; match it so text starts at the same x. */
+  .inner {
+    padding-inline: calc(var(--space-6) + 1px);
+  }
+}

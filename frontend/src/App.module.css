@@ -1,0 +1,35 @@
+.form {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: var(--border);
+}
+
+.run {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 479px) {
+  .run {
+    flex: 1 1 100%;
+  }
+
+  .run > button {
+    flex: 1;
+  }
+
+  /* No keyboard shortcut on a phone. */
+  .run > kbd {
+    display: none;
+  }
+}
