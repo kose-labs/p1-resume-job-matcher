@@ -11,6 +11,17 @@ and versions follow [Semantic Versioning](https://semver.org/).
   the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
 - `evaluate.py gaps` lists the pairs where a model's rank and our rating disagree most (IDs only),
   for the model card's failure analysis.
+- Redesigned match page as a two-pane workspace: inputs on the left, a sticky results report on the
+  right (one column on phones). Design tokens for colour, type, spacing and radius; light theme by
+  default, a true-neutral dark theme and a manual theme toggle; IBM Plex Sans and Mono, self-hosted.
+  The report shows the score in mono with a provisional band (Low / Moderate / Strong, from the
+  deployed model's scores on our evaluation pairs), a flat meter, skills as matched / missing tags,
+  evidence when available, and the model and round-trip time. Empty, loading (skeleton), success
+  and error states, each error with a next step; Ctrl/Cmd + Enter runs a match. Subtle motion
+  (the score bar draws in, the loading skeleton pulses, buttons press, theme changes fade), all off
+  with reduced motion. Lighthouse accessibility 100, and no axe violations in any state or theme.
+- "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
+  visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
@@ -70,6 +81,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
+  not as a percentage, which read as a probability of fit.
+- A match request still open after 60 s ends with a timeout message instead of spinning forever.
 - Rating sheets are shared in `research/ratings/<rater>.csv` once both raters finish a batch; `evaluate.py` reads them from there (we still rate in the git-ignored `data/ratings/`).
 - ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
