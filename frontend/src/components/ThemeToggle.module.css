@@ -1,0 +1,24 @@
+.toggle {
+  height: 28px;
+  min-width: 64px;
+  padding: 0 var(--space-2);
+  border: var(--border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  transition:
+    color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.toggle:active {
+  transform: translateY(1px);
+}
+
+.toggle:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
