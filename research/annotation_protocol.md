@@ -58,7 +58,8 @@ PostgreSQL, Docker, CI/CD. Nice to have: AWS, Redis."*
    writing style and English quality (unless the JD asks for an English level).
 
 ## The rating sheet
-One CSV per rater, `data/ratings/<rater>.csv` (git-ignored, like all of `data/`):
+One CSV per rater. You rate in your working copy, `data/ratings/<rater>.csv` (git-ignored, like all
+of `data/`):
 
 ```csv
 pair_id,rating,notes
@@ -69,6 +70,12 @@ p003,3,"main stack missing, but strong Java"
 
 The pair texts come from `data/pairs/pairs.jsonl`, built by script. The sheet only has `pair_id`,
 so neither of us sees the other's ratings or any score.
+
+**Sharing, only after a batch is finished by both of us** (calibration, then the main set): each of
+us copies their sheet to `research/ratings/<rater>.csv` and commits it, and `evaluate.py` reads
+from there. The sheet holds pair IDs, ratings and short notes only, so it is safe to commit:
+**never quote CV or JD text in the notes.** Committing before the other has finished would let
+them see your ratings, so wait until both say "done".
 
 ## Which pairs we rate (sampling plan)
 The corpus (ADR-0001) has 30 JDs and 30 CVs, 5 each from six fields: Python, Data Science,

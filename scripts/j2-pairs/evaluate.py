@@ -3,8 +3,9 @@
     uv run python evaluate.py agreement            # κ between the two raters, plus disagreements
     uv run python evaluate.py score <scores.csv>   # Spearman ρ of a model's scores vs our ratings
 
-`agreement` compares `data/ratings/kobi.csv` and `data/ratings/semanu.csv` on the pairs both have
-rated: quadratic weighted Cohen's κ (target ≥ 0.6), and every pair where the ratings differ by 2+.
+`agreement` compares `research/ratings/kobi.csv` and `research/ratings/semanu.csv` (committed once
+both of us have finished a batch, see the protocol) on the pairs both have rated: quadratic
+weighted Cohen's κ (target ≥ 0.6), and every pair where the ratings differ by 2+.
 
 `score` reads a CSV with `cv_id,jd_id,score` columns (e.g. `data/scores/tfidf-baseline.csv`),
 joins it to the pairs both raters have rated, and reports Spearman ρ against the mean rating on the
@@ -30,13 +31,16 @@ sys.path.insert(0, str(ROOT / "backend"))  # use the tested metric code
 from app.ml.metrics import LEVELS, spearman, weighted_kappa  # noqa: E402
 
 PAIRS = ROOT / "data" / "pairs" / "pairs.jsonl"
-RATINGS = ROOT / "data" / "ratings"
+RATINGS = ROOT / "research" / "ratings"  # shared copies; we rate in data/ratings/
 RATERS = ("kobi", "semanu")
 
 
 def read_ratings(rater: str) -> dict[str, int]:
     """Return pair_id -> rating for the rows this rater has filled in."""
-    with (RATINGS / f"{rater}.csv").open(encoding="utf-8") as f:
+    sheet = RATINGS / f"{rater}.csv"
+    if not sheet.exists():
+        raise SystemExit(f"{sheet.relative_to(ROOT)} is missing: commit it once both are done")
+    with sheet.open(encoding="utf-8") as f:
         rows = csv.DictReader(f)
         ratings = {r["pair_id"]: int(r["rating"]) for r in rows if r["rating"].strip()}
     bad = {p: r for p, r in ratings.items() if r not in LEVELS}
