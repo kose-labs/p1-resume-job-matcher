@@ -20,6 +20,8 @@
     "api:types": "npx --yes --package=typescript@5.9.3 --package=openapi-typescript@7.13.0 -- openapi-typescript openapi.json -o src/api/schema.d.ts"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

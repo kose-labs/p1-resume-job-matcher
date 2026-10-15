@@ -1,0 +1,121 @@
+/*
+ * Design tokens: every colour, size and duration the UI uses. Components reference these, never
+ * raw values. Colours are named by role. Every text/background pair meets WCAG 2.2 AA (4.5:1 for
+ * text, 3:1 for input borders and focus rings) in both themes.
+ *
+ * Theme: light by default, dark when the system asks for it, and either one forced by
+ * data-theme="light" | "dark" on <html> (the theme toggle).
+ */
+
+:root {
+  /* Type */
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --leading-xs: 16px;
+  --leading-sm: 18px;
+  --leading-base: 20px;
+  --leading-md: 24px;
+  --leading-lg: 28px;
+  --leading-xl: 32px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --tracking-tight: -0.01em;
+
+  /* Space: a 4px grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Shape */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --border: 1px solid var(--color-border);
+
+  /* Layout */
+  --topbar-height: 48px;
+  --content-max: 1280px;
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-theme: 150ms;
+  --duration-reveal: 500ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Colour: light */
+  color-scheme: light;
+  --color-bg: #ffffff;
+  --color-bg-subtle: #fafafa;
+  --color-bg-muted: #f4f4f5;
+  --color-border: #e4e4e7;
+  --color-border-strong: #8a8a92;
+  --color-text: #18181b;
+  --color-text-muted: #52525b;
+  --color-text-subtle: #6b6b74;
+  --color-primary: #18181b;
+  --color-primary-hover: #3f3f46;
+  --color-on-primary: #ffffff;
+  --color-focus: #18181b;
+  --color-success: #166534;
+  --color-warning: #92400e;
+  --color-danger: #b91c1c;
+  --color-danger-bg: #fef2f2;
+  --shadow-xs: 0 1px 1px rgb(0 0 0 / 4%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-bg: #0a0a0a;
+    --color-bg-subtle: #111111;
+    --color-bg-muted: #1a1a1a;
+    --color-border: #27272a;
+    --color-border-strong: #71717a;
+    --color-text: #fafafa;
+    --color-text-muted: #a1a1aa;
+    --color-text-subtle: #8b8b94;
+    --color-primary: #fafafa;
+    --color-primary-hover: #d4d4d8;
+    --color-on-primary: #0a0a0a;
+    --color-focus: #fafafa;
+    --color-success: #86d9a6;
+    --color-warning: #e3b567;
+    --color-danger: #f19a9a;
+    --color-danger-bg: #2a1215;
+    --shadow-xs: none;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #0a0a0a;
+  --color-bg-subtle: #111111;
+  --color-bg-muted: #1a1a1a;
+  --color-border: #27272a;
+  --color-border-strong: #71717a;
+  --color-text: #fafafa;
+  --color-text-muted: #a1a1aa;
+  --color-text-subtle: #8b8b94;
+  --color-primary: #fafafa;
+  --color-primary-hover: #d4d4d8;
+  --color-on-primary: #0a0a0a;
+  --color-focus: #fafafa;
+  --color-success: #86d9a6;
+  --color-warning: #e3b567;
+  --color-danger: #f19a9a;
+  --color-danger-bg: #2a1215;
+  --shadow-xs: none;
+}
