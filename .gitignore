@@ -4,6 +4,8 @@ private-data/
 *.pdf
 # Exception: synthetic PDFs used as test fixtures
 !backend/tests/fixtures/*.pdf
+# Exception: the fictional "Jordan Example" CV the site offers as sample data
+!frontend/public/sample-cv.pdf
 *.docx
 
 # --- Secrets ---

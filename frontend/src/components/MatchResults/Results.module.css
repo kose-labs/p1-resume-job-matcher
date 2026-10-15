@@ -1,0 +1,235 @@
+/* The results report: blocks separated by hairlines, numbers in mono. */
+
+.report {
+  display: grid;
+}
+
+.block {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-top: var(--border);
+}
+
+.block:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.label,
+.heading {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-medium);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: var(--weight-medium);
+}
+
+.band {
+  padding: 0 var(--space-2);
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-medium);
+}
+
+/* A flat, neutral bar; the browser's own meter styling is replaced in each engine. */
+.meter {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color-bg-muted);
+  appearance: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .meter {
+    animation: draw-in var(--duration-reveal) var(--ease) both;
+  }
+
+  .skeletonLine,
+  .skeletonValue {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes draw-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+/* 2. The loading placeholder breathes gently while the match runs. */
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.meter::-webkit-meter-bar {
+  height: 4px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--color-border);
+}
+
+.meter::-webkit-meter-optimum-value,
+.meter::-webkit-meter-suboptimum-value,
+.meter::-webkit-meter-even-less-good-value {
+  border-radius: 2px;
+  background: var(--color-text);
+}
+
+.meter::-moz-meter-bar {
+  border-radius: 2px;
+  background: var(--color-text);
+}
+
+.report > .meta {
+  padding-top: var(--space-3);
+  border-top: var(--border);
+}
+
+.scale,
+.meta {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+.caveat,
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+
+.columnTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.dot[data-kind='matched'] {
+  background: var(--color-success);
+}
+
+.dot[data-kind='missing'] {
+  background: var(--color-warning);
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  padding: 0 var(--space-2);
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: var(--text-xs);
+  line-height: var(--leading-sm);
+}
+
+.evidence {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidenceItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+}
+
+.requirement {
+  font-weight: var(--weight-medium);
+}
+
+.similarity {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.excerpt {
+  grid-column: 1 / -1;
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.skeletonLine,
+.skeletonValue {
+  display: block;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+}
+
+.skeletonValue {
+  width: 96px;
+  height: 28px;
+}
+
+.skeletonLine[data-width='short'] {
+  width: 30%;
+}
+
+.skeletonLine[data-width='half'] {
+  width: 55%;
+}
+
+.skeletonLine[data-width='full'] {
+  width: 100%;
+}
