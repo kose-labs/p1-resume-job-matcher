@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- A rating page for J2 (`scripts/j2-pairs/rate.py`): one pair at a time, keys 1–5, notes, saved to
+  the rater's sheet after every rating and resumable; never shows strata, splits or scores.
 - Redesigned match page as a two-pane workspace: inputs on the left, a sticky results report on the
   right (one column on phones). Design tokens for colour, type, spacing and radius; light theme by
   default, a true-neutral dark theme and a manual theme toggle; IBM Plex Sans and Mono, self-hosted.
