@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Matches now list the job's skills in two groups: those the CV names (matched) and those it
+  doesn't (missing), with ESCO links where they exist (K9 extractor, loaded once at startup).
 - Redesigned match page as a two-pane workspace: inputs on the left, a sticky results report on the
   right (one column on phones). Design tokens for colour, type, spacing and radius; light theme by
   default, a true-neutral dark theme and a manual theme toggle; IBM Plex Sans and Mono, self-hosted.
