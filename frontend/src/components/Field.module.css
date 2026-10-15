@@ -1,0 +1,65 @@
+/* Label, hint, count and error text shared by the input fields. */
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.label {
+  font-weight: var(--weight-medium);
+}
+
+.labelHint {
+  margin-left: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.textarea {
+  width: 100%;
+  height: clamp(220px, 46vh, 520px);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  line-height: var(--leading-base);
+  resize: vertical;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.textarea:hover {
+  border-color: var(--color-text-muted);
+}
+
+.textarea[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+.hint {
+  color: var(--color-text-muted);
+}
+
+.count {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
