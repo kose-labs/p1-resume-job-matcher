@@ -51,6 +51,8 @@
 
   /* Motion */
   --duration-fast: 120ms;
+  --duration-theme: 150ms;
+  --duration-reveal: 500ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
 
   /* Colour: light */

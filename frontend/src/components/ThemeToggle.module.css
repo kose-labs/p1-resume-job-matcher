@@ -10,7 +10,12 @@
   line-height: var(--leading-xs);
   transition:
     color var(--duration-fast) var(--ease),
-    border-color var(--duration-fast) var(--ease);
+    border-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.toggle:active {
+  transform: translateY(1px);
 }
 
 .toggle:hover {

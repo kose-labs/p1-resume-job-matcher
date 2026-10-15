@@ -13,7 +13,13 @@
   color: var(--color-on-primary);
   font-weight: var(--weight-medium);
   box-shadow: var(--shadow-xs);
-  transition: background-color var(--duration-fast) var(--ease);
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.primary:active:not(:disabled, [aria-disabled='true']) {
+  transform: translateY(1px);
 }
 
 .primary:hover:not(:disabled, [aria-disabled='true']) {
