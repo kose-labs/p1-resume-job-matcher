@@ -18,8 +18,7 @@ services:
     envVars:
       - key: CORS_ORIGINS
         value: https://kose-labs.github.io
-      # Proxies in front of the app that append to X-Forwarded-For. Start at 1: too low only
-      # makes the rate limit stricter; too high lets clients forge their address. Find the real
-      # number on the first deploy with "Rate limit: finding the proxy count" in docs/deployment.md.
+      # Proxies in front of the app that append to X-Forwarded-For. Verified on 2026-10-15 with
+      # both tests in docs/deployment.md ("Rate limit: finding the proxy count"): 1 is right.
       - key: TRUSTED_PROXY_HOPS
         value: "1"
