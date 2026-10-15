@@ -18,6 +18,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   with reduced motion. Lighthouse accessibility 100, and no axe violations in any state or theme.
 - "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
+- Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
+  similarity, weighted mean of best matches, top pairs as evidence; model comparison in
+  `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
 - Skill extraction (`app.ml.skills`, K9): ESCO v1.2 ICT, statistics, mathematics and digital
   skills (944, fetched from the ESCO API by `scripts/build_skills_vocab.py`) plus our tech
   dictionary, matched as whole tokens with the longest label winning; case-sensitive names (Go, R,
@@ -77,6 +80,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
   not as a percentage, which read as a probability of fit.
 - A match request still open after 60 s ends with a timeout message instead of spinning forever.
+- Rating sheets are shared in `research/ratings/<rater>.csv` once both raters finish a batch; `evaluate.py` reads them from there (we still rate in the git-ignored `data/ratings/`).
 - ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
