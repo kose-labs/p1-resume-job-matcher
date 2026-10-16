@@ -9,6 +9,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 - Matches now list the job's skills in two groups: those the CV names (matched) and those it
   doesn't (missing), with ESCO links where they exist (K9 extractor, loaded once at startup).
+- A rating page for J2 (`scripts/j2-pairs/rate.py`): one pair at a time, keys 1–5, notes, saved to
+  the rater's sheet after every rating and resumable; never shows strata, splits or scores.
 - Redesigned match page as a two-pane workspace: inputs on the left, a sticky results report on the
   right (one column on phones). Design tokens for colour, type, spacing and radius; light theme by
   default, a true-neutral dark theme and a manual theme toggle; IBM Plex Sans and Mono, self-hosted.
@@ -79,6 +81,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
+  seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
   not as a percentage, which read as a probability of fit.
 - A match request still open after 60 s ends with a timeout message instead of spinning forever.
