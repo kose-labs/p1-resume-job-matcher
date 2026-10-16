@@ -50,6 +50,47 @@ def test_everyday_words_are_not_skills(extractor: SkillExtractor, text: str) -> 
     assert extractor.extract(text) == []
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Access to a company laptop and paid gym.",
+        "Express delivery of features.",
+        "Swift decisions, short meetings.",
+        "We raised our Series C last year.",
+        "Plan A, B and C.",
+        "Experience with C",
+    ],
+)
+def test_capitals_that_prove_nothing_are_not_skills(extractor: SkillExtractor, text: str) -> None:
+    # A sentence's first word is capitalised anyway, and one letter alone is rarely a language.
+    assert extractor.extract(text) == []
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("- Go\n- Rust\n- C", ["Go", "Rust", "C"]),
+        ("Go, Rust or C (C11).", ["Go", "Rust", "C"]),
+        ("Go and Rust experience", ["Go", "Rust"]),
+        ("Strong C/C++ skills", ["C", "C++"]),
+        ("Go developer wanted. Our stack: Python, Go.", ["Go", "Python"]),
+    ],
+)
+def test_names_in_lists_or_next_to_other_skills_still_count(
+    extractor: SkillExtractor, text: str, expected: list[str]
+) -> None:
+    assert names(extractor, text) == expected
+
+
+def test_related_but_different_tools_stay_apart(extractor: SkillExtractor) -> None:
+    assert names(extractor, "React Native, React, Unix and Linux") == [
+        "React Native",
+        "React",
+        "Unix",
+        "Linux",
+    ]
+
+
 def test_case_sensitive_names_match_when_written_as_names(extractor: SkillExtractor) -> None:
     text = "Go, Rust, Swift, Spring, R and REST services; built with Scratch and LESS."
     assert names(extractor, text) == [
@@ -102,3 +143,28 @@ def test_esco_artefact_has_provenance_and_only_labels() -> None:
     assert "2011/833/EU" in data["licence"]
     assert len(data["skills"]) > 900
     assert all(set(entry) == {"uri", "label", "alt"} for entry in data["skills"])
+
+
+def test_dictionary_names_match_in_any_casing(extractor: SkillExtractor) -> None:
+    # ESCO also has "TypeScript" or "Java" as capitalised one-word labels; that mustn't make our
+    # unambiguous names case-sensitive.
+    assert names(extractor, "Typescript, Javascript and MySql. Java 11 experience a plus.") == [
+        "TypeScript",
+        "JavaScript",
+        "MySQL",
+        "Java",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("DevOps experience;", ["DevOps"]),
+        ("- Experience with R programming language", ["R"]),
+        ("Spring Framework (DI, MVC)", ["Spring"]),
+    ],
+)
+def test_clear_names_at_the_start_of_a_sentence(
+    extractor: SkillExtractor, text: str, expected: list[str]
+) -> None:
+    assert names(extractor, text) == expected
