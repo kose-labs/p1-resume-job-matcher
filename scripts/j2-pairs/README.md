@@ -23,10 +23,20 @@ What it guarantees:
 - **Calibration:** 20 dev pairs (10 / 5 / 5 by stratum), IDs p001–p020.
 - **Reproducible:** one seeded generator, so the same corpus gives the same pairs, IDs and split.
 
-## 2. Rate the calibration batch (alone)
+## 2. Rate a batch (alone)
 
-Open `packet-calibration.html` in a browser and fill in rows p001–p020 of your sheet. Don't
-discuss pairs until both sheets are done.
+The quickest way is the rating page: one pair at a time, keys 1–5 to rate, N for a note, ← → to
+move, ? for the protocol's scale and rules. Each rating is saved to `data/ratings/<you>.csv` at
+once, so you can stop and come back; it opens on the first pair you haven't rated.
+
+```bash
+uv run python rate.py <you>                      # main set, p021–p120
+uv run python rate.py <you> --batch calibration  # p001–p020
+```
+
+It shows only the pair ID and the two texts (no stratum, split or score) and listens on this
+computer only. Stop it with Ctrl+C. You can also read `packet-calibration.html` or
+`packet-main.html` and fill in the sheet by hand. Don't discuss pairs until both sheets are done.
 
 ## 3. Share the sheets and check agreement
 

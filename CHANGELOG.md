@@ -9,6 +9,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ### Added
 - Model card draft (`docs/model_card.md`): intended and out-of-scope use, models, evaluation design,
   proxy and serving numbers, limitations and ethics; rated results to follow on day 8.
+- A rating page for J2 (`scripts/j2-pairs/rate.py`): one pair at a time, keys 1–5, notes, saved to
+  the rater's sheet after every rating and resumable; never shows strata, splits or scores.
 - Redesigned match page as a two-pane workspace: inputs on the left, a sticky results report on the
   right (one column on phones). Design tokens for colour, type, spacing and radius; light theme by
   default, a true-neutral dark theme and a manual theme toggle; IBM Plex Sans and Mono, self-hosted.
@@ -79,6 +81,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
+  seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
   not as a percentage, which read as a probability of fit.
 - A match request still open after 60 s ends with a timeout message instead of spinning forever.
@@ -89,6 +93,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
+- Skill extraction (0.2.0) is more precise: a capitalised word at the start of a sentence ("Access
+  to a laptop", "Express delivery") or a lone letter ("Series C") no longer counts as a skill unless
+  it's in a list, next to another skill or named clearly elsewhere. React Native and Unix are their
+  own skills, not React and Linux. Dictionary names now match in any casing ("Typescript", "MySql"),
+  which ESCO's capitalised labels had made case-sensitive.
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
