@@ -79,6 +79,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
+  seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
   not as a percentage, which read as a probability of fit.
 - A match request still open after 60 s ends with a timeout message instead of spinning forever.
