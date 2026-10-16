@@ -1,6 +1,7 @@
 """Rate CV–job pairs in the browser, one at a time, straight into your rating sheet (J2).
 
     uv run python rate.py semanu              # the main set, p021-p120
+    uv run python rate.py kobi --split dev    # only the main set's dev pairs
     uv run python rate.py kobi --batch calibration
 
 Opens http://127.0.0.1:8765 with the job description on the left and the CV on the right. Press
@@ -59,11 +60,16 @@ def load_jsonl(path: Path) -> list[dict[str, str]]:
 class Session:
     """Everything one rating session needs: the batch's pairs, the texts and the sheet."""
 
-    def __init__(self, root: Path, rater: str, batch: str) -> None:
-        """Load the pairs of `batch`, the corpus texts and `rater`'s sheet from `root`/data."""
+    def __init__(self, root: Path, rater: str, batch: str, split: str = "all") -> None:
+        """Load the pairs of `batch` (and `split`), the corpus texts and `rater`'s sheet."""
         data = root / "data"
         pairs = load_jsonl(data / "pairs" / "pairs.jsonl")
-        self.order = [p["pair_id"] for p in pairs if p["calibration"] == BATCHES[batch]]
+        # The split only chooses which pairs to serve; the page itself never learns it.
+        self.order = [
+            p["pair_id"]
+            for p in pairs
+            if p["calibration"] == BATCHES[batch] and split in ("all", p["split"])
+        ]
         self.pairs = {p["pair_id"]: p for p in pairs}
         docs = load_jsonl(data / "corpus" / "jds.jsonl") + load_jsonl(data / "corpus" / "cvs.jsonl")
         self.docs = {d["id"]: d for d in docs}
@@ -151,15 +157,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("rater", choices=RATERS)
     parser.add_argument("--batch", choices=list(BATCHES), default="main")
+    parser.add_argument("--split", choices=["all", "dev", "test"], default="all")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
     args = parser.parse_args()
 
-    session = Session(args.root, args.rater, args.batch)
+    session = Session(args.root, args.rater, args.batch, args.split)
     done = len(session.state()["ratings"].keys() & set(session.order))
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(session))
     url = f"http://127.0.0.1:{args.port}/"
-    print(f"Rating the {args.batch} batch as {args.rater}: {done} of {len(session.order)} done.")
+    which = args.batch if args.split == "all" else f"{args.batch} batch's {args.split}"
+    print(f"Rating the {which} pairs as {args.rater}: {done} of {len(session.order)} done.")
     print(f"Open {url} (Ctrl+C here to stop; every rating is already saved).")
     webbrowser.open(url)
     try:

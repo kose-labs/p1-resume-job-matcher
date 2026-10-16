@@ -31,6 +31,7 @@ once, so you can stop and come back; it opens on the first pair you haven't rate
 
 ```bash
 uv run python rate.py <you>                      # main set, p021–p120
+uv run python rate.py <you> --split dev          # only the main set's 20 dev pairs
 uv run python rate.py <you> --batch calibration  # p001–p020
 ```
 
