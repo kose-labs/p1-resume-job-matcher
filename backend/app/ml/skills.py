@@ -18,6 +18,13 @@ precision ≥ 0.80). They are general, not tuned on our labels:
 - **Case-sensitive words.** Names that are also English words ("Go", "Swift", "Spring", "R")
   only count when written as a name, so "go to market" and "spring release" don't match. One-word
   ESCO labels with a capital letter ("Scratch", "LESS", "Access") follow the same rule.
+- **Capitals that prove nothing.** A sentence's first word is capitalised anyway, so "Access to a
+  company laptop" or "Express delivery" isn't evidence of a name. There, a case-sensitive name
+  counts only if it stands alone as a list item ("- Go", "Go, Rust"), the sentence names another
+  skill ("Go and Rust") or calls it a language ("R programming"). The same goes for one-letter
+  names anywhere ("Series C", "Plan A, B and C"). Either way, the skill still counts when the text
+  names it clearly somewhere else. Our dictionary decides which of its names are ambiguous, so
+  "Java" or "Python" at the start of a sentence always count.
 - **No short ESCO labels.** ESCO labels of 3 characters or fewer are mostly acronyms with other
   meanings ("AR", "POS", "ST"). Short tech names we want are in `TECH_SKILLS` instead.
 - **No one-word lowercase ESCO synonyms.** ESCO lists "data" as another name for statistics and
@@ -33,7 +40,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from app.ml.preprocess import clean_text, token_spans, tokenize
+from app.ml.preprocess import clean_text, split_sentences, token_spans, tokenize
 
 ESCO_ARTIFACT = Path(__file__).parent / "artifacts" / "skills-esco.json.gz"
 
@@ -74,13 +81,14 @@ TECH_SKILLS: dict[str, list[str]] = {
     "Django": ["django rest framework", "drf"],
     "Flask": [],
     "FastAPI": [],
-    "Spring": [],
+    "Spring": ["spring framework"],
     "Spring Boot": [],
     "Hibernate": [],
     "Node.js": [],
     "Express": ["express.js", "expressjs"],
     "NestJS": ["nest.js"],
-    "React": ["react native"],
+    "React": [],
+    "React Native": [],
     "Angular": ["angularjs"],
     "Vue.js": ["vue"],
     "Next.js": ["nextjs"],
@@ -137,7 +145,8 @@ TECH_SKILLS: dict[str, list[str]] = {
     "GitLab CI": ["gitlab ci/cd"],
     "GitHub Actions": [],
     "CI/CD": ["continuous integration", "continuous delivery", "continuous deployment"],
-    "Linux": ["unix"],
+    "Linux": [],
+    "Unix": [],
     "Nginx": [],
     "Prometheus": [],
     "Grafana": [],
@@ -199,7 +208,7 @@ class SkillExtractor:
     """Longest-match lookup of skill labels over the tokens of a text."""
 
     name = "esco-dictionary"
-    version = "0.1.0"
+    version = "0.2.0"
 
     def __init__(
         self, labels: Iterable[tuple[str, Skill]], case_sensitive: Iterable[str] = CASE_SENSITIVE
@@ -240,6 +249,9 @@ class SkillExtractor:
         esco_labels = [(_plain(e["label"]), e, False) for e in esco]
         esco_labels += [(_plain(alt), e, True) for e in esco for alt in e["alt"]]
         cased = set(CASE_SENSITIVE)
+        # Our dictionary decides which of its names are ambiguous: ESCO's "Java" or "Python" are
+        # capitalised one-word labels too, but nobody writes "python" meaning a snake in a JD.
+        ours = {text.lower() for text, _ in labels}
         for text, entry, is_alt in esco_labels:
             one_word = len(tokenize(text)) == 1
             generic = is_alt and (
@@ -247,16 +259,36 @@ class SkillExtractor:
             )
             if len(text) < MIN_ESCO_LABEL or generic:
                 continue
-            if one_word and not text.islower():
+            if one_word and not text.islower() and text.lower() not in ours:
                 cased.add(text)
             labels.append((text, Skill(_plain(entry["label"]), entry["uri"])))
         return cls(labels, cased)
 
     def extract(self, text: str) -> list[Skill]:
         """Skills mentioned in the text, each once, in order of first mention."""
-        spans = token_spans(_RND.sub("research and development", clean_text(text)))
+        cleaned = _RND.sub("research and development", clean_text(text))
+        mentions: list[tuple[Skill, bool]] = []  # (skill, clear evidence), in text order
+        for sentence in split_sentences(cleaned):
+            found = self._matches(sentence)
+            skills = {skill for skill, _, _ in found}
+            for skill, start, cased in found:
+                alone = start == 0 and _stands_alone(sentence, cased or "")
+                named = cased is not None and _named_as_language(sentence, cased)
+                ambiguous = (
+                    cased is not None
+                    and _like_a_word(cased)
+                    and not (alone or named)
+                    and (start == 0 or len(cased) == 1)
+                )
+                mentions.append((skill, not ambiguous or len(skills) > 1))
+        clear = {skill for skill, ok in mentions if ok}
+        return list(dict.fromkeys(skill for skill, _ in mentions if skill in clear))
+
+    def _matches(self, sentence: str) -> list[tuple[Skill, int, str | None]]:
+        """Longest matches in one sentence: (skill, token index, the name if case-sensitive)."""
+        spans = token_spans(sentence)
         tokens = [token for token, _ in spans]
-        found: list[Skill] = []
+        found: list[tuple[Skill, int, str | None]] = []
         i = 0
         while i < len(tokens):
             for size in range(min(self._longest, len(tokens) - i), 0, -1):
@@ -268,12 +300,34 @@ class SkillExtractor:
                 source = " ".join(s for _, s in spans[i : i + size])
                 # Spelling variants ("golang" for Go) are unambiguous: only the name itself
                 # has to be written with its casing.
-                if cased is not None and source != cased and source.lower() == cased.lower():
-                    continue
-                if skill not in found:
-                    found.append(skill)
+                if cased is not None and source.lower() == cased.lower():
+                    if source != cased:
+                        continue
+                    found.append((skill, i, cased))
+                else:
+                    found.append((skill, i, None))
                 i += size
                 break
             else:
                 i += 1
         return found
+
+
+def _stands_alone(sentence: str, name: str) -> bool:
+    """True if the sentence starts with the name as a list item: "Go", "Go, Rust", "Spring
+    Framework". A lowercase word or a number after it reads as prose: "Access to", "Spring 2025"."""
+    rest = sentence[sentence.find(name) + len(name) :]
+    return not rest or rest[0] != " " or not (rest[1:2].islower() or rest[1:2].isdigit())
+
+
+def _like_a_word(name: str) -> bool:
+    """True for names spelled like an English word ("Go", "Access", "C"), so a capital at the start
+    of a sentence proves nothing. "DevOps" or "LESS" can't be a normal word written there."""
+    return name[1:].islower() or len(name) == 1
+
+
+def _named_as_language(sentence: str, name: str) -> bool:
+    """True if the text calls the name a language: "R programming", "C language"."""
+    return (
+        re.search(rf"(?<![\w+#]){re.escape(name)} (?:programming|language)\b", sentence) is not None
+    )
