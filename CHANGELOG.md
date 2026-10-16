@@ -79,6 +79,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- Score bands fitted to our dev ratings: Moderate from 0.04 and Strong from 0.055 (were 0.03 and
+  0.06 from score quantiles), which put 27 of 40 rated pairs in the right band instead of 20.
 - Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
   seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),

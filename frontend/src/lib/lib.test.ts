@@ -11,10 +11,10 @@ afterEach(() => {
 describe('scoreBand', () => {
   it.each([
     [0, 'Low'],
-    [0.0299, 'Low'],
-    [0.03, 'Moderate'],
-    [0.0599, 'Moderate'],
-    [0.06, 'Strong'],
+    [0.0399, 'Low'],
+    [0.04, 'Moderate'],
+    [0.0549, 'Moderate'],
+    [0.055, 'Strong'],
     [0.5, 'Strong'],
   ])('reads %s as %s', (score, band) => {
     expect(scoreBand(score)).toBe(band)

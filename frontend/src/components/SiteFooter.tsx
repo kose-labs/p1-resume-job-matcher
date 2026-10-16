@@ -13,14 +13,14 @@ export function SiteFooter() {
           <p>
             The score is the cosine similarity between TF-IDF vectors of the CV and the job
             description: how much the two share the terms that are distinctive across 3,000 public
-            job posts. It is not a probability of being hired, and it has not yet been calibrated
-            against human ratings.
+            job posts. It is not a probability of being hired. On 40 CV–job pairs we rated by hand,
+            its ranking agreed moderately with ours (Spearman ρ 0.66), but the raw number has no
+            meaning on its own.
           </p>
           <p>
-            The bands are provisional, set from scores on our evaluation pairs: low below{' '}
-            {SCORE_BANDS.moderate}, moderate up to {SCORE_BANDS.strong}, strong from{' '}
-            {SCORE_BANDS.strong}. Compare several jobs against the same CV rather than reading one
-            number on its own.
+            The bands are fitted to our ratings of those pairs: low below {SCORE_BANDS.moderate},
+            moderate up to {SCORE_BANDS.strong}, strong from {SCORE_BANDS.strong}. Compare several
+            jobs against the same CV rather than reading one number on its own.
           </p>
           <p>
             Only text-based PDFs can be read; scanned CVs are rejected. The sample CV is fictional (
