@@ -13,7 +13,7 @@ See how well a CV fits a job description, and why. CVs are processed in memory a
 **Run match**. The backend sleeps after 15 idle minutes, so the first request can take about a
 minute.
 
-![The match page: job description and CV on the left, the results report on the right](docs/screenshots/after-desktop-light.png)
+![Demo: Use sample data fills in a job description and a fictional CV; Run match shows Strong fit, about 95%, with the skills the CV matches and misses](docs/screenshots/demo.gif)
 
 ## Problem and solution
 
@@ -165,21 +165,28 @@ Errors come back as `{"detail": {"code": "...", "message": "..."}}` with 413 (to
 
 ## Evaluation results
 
-Our main metric is Spearman ρ between the score and our own ratings of 120 CV–job pairs
-([annotation protocol](research/annotation_protocol.md)); the test-set numbers go in the
-[model card](docs/model_card.md) once the ratings are complete. So far (day 5 of 10):
+Our main metric is Spearman ρ between the score and our own ratings of 120 CV–job pairs, rated 1–5
+by both of us under an [annotation protocol](research/annotation_protocol.md). Everything was chosen
+on 40 dev pairs; the 80 test pairs (20 job descriptions) were run **once**, on the served model.
+Full report: [evaluation](docs/evaluation.md) · [model card](docs/model_card.md).
 
-| What | Result | Target |
+| What (test set) | Result | Target |
 |---|---|---|
-| Agreement between our two raters (calibration, 20 pairs) | weighted κ **0.785** | ≥ 0.6 |
-| Deployed TF-IDF on the field proxy (900 pairs, AUC same vs unrelated) | **0.819** (K7 baseline 0.789) | reference |
-| Score vs our ratings (ρ) | pending the main rating set | ≥ 0.55, and ≥ 0.10 above TF-IDF |
-| Skill extraction | pending hand labels | F1 ≥ 0.70, precision ≥ 0.80 |
-| Match latency, 2-page CV, warm server | 0.16 s | < 3 s |
-| Peak memory, 4 concurrent 5 MB CVs | 192 MB | < 400 MB |
+| Agreement between our two raters | weighted κ **0.734** | ≥ 0.6 ✅ |
+| **Score vs our ratings, served TF-IDF** | ρ **0.553** (95% CI 0.39 to 0.71) | ≥ 0.55 ✅ (just) |
+| Score vs our ratings, K7 TF-IDF baseline | ρ 0.535 | reference |
+| Best embedding model (MiniLM-L6, whole text) | ρ 0.529 | must beat TF-IDF by 0.10 ❌, so TF-IDF stays ([ADR-0004](docs/adr/0004-embedding-model.md)) |
+| Estimated fit, error vs our ratings | 0.75 rating points (1.04 guessing the mean) | reference |
+| Score band (Low / Moderate / Strong) right | 51 of 80 pairs (64%) | reference |
+| Skill extraction (12 hand-labelled JDs) | precision **0.904**, recall 0.591, F1 **0.715** | precision ≥ 0.80 ✅, F1 ≥ 0.70 ✅ |
+| Match latency, 2-page CV, warm server | 0.16 s | < 3 s ✅ |
+| Peak memory, 4 concurrent 5 MB CVs | 192 MB | < 400 MB ✅ |
 
-Experiments: [K7 TF-IDF baseline](docs/experiments/k7-tfidf-baseline.md). Status and plan:
-[mid-project check](docs/mid-project-check.md).
+**What it means:** the score reliably flags poor matches and separates jobs from different fields,
+which suits comparing several jobs for one CV. It is weak within one field (ρ 0.24 among same-field
+pairs) and at recognising strong matches written in other words. The
+[failure analysis](docs/evaluation.md#failure-analysis-the-10-largest-gaps-on-test) traces the
+largest misses to generic process words, missing seniority signals and short CVs.
 
 ## Project structure
 

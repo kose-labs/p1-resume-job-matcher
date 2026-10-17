@@ -14,6 +14,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
   the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
 - `evaluate.py gaps` lists the pairs where a model's rank and our rating disagree most (IDs only),
   for the model card's failure analysis.
+- Test-set results, run once on the served model (`docs/evaluation.md`, model card, README): κ 0.734
+  between us, Spearman ρ 0.553 (95% CI 0.394 to 0.707) for TF-IDF with no embedding model ahead,
+  estimated-fit error 0.75 rating points, 51 of 80 pairs in the right band, skills precision 0.904
+  and F1 0.715, and a failure analysis of the 10 largest gaps.
 - Matches now list the job's skills in two groups: those the CV names (matched) and those it
   doesn't (missing), with ESCO links where they exist (K9 extractor, loaded once at startup).
 - A rating page for J2 (`scripts/j2-pairs/rate.py`): one pair at a time, keys 1–5, notes, saved to
@@ -31,6 +35,13 @@ and versions follow [Semantic Versioning](https://semver.org/).
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
 - Model card draft (`docs/model_card.md`): intended and out-of-scope use, models, evaluation design,
   proxy and serving numbers, limitations and ethics; rated results to follow on day 8.
+- The score reads as an **estimated fit from 0 to 100%**: how we'd likely rate the pair (rating 1 →
+  0%, rating 5 → 100%), from a logistic curve fitted on our 40 dev ratings (`app.ml.calibration`,
+  `evaluate.py calibrate`). It lands 0.76 rating points from our ratings on held-out JDs (1.08 for
+  guessing the mean) and keeps the ranking, so ρ is unchanged. The band leads ("Strong fit") and the
+  fit is rounded to 5% ("≈ 80%"), since its typical error is about ±19 points; the raw similarity
+  stays visible. Bands sit on the shown fit (Low ≤ 40%, Moderate 45–55%, Strong ≥ 60%), so the band
+  never contradicts the percentage; 27 of 40 dev pairs land in the right band, as before.
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
@@ -40,6 +51,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Spring) and no generic one-word synonyms, for precision. `scripts/skill_eval.py` builds the
   labelling packet for 20 JDs and reports precision, recall and F1 (guide in
   `research/skill_labeling_guide.md`).
+- Demo GIF in the README, recorded from the live site with the sample data
+  (`scripts/demo/record_gif.py`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
@@ -100,10 +113,15 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
   not as a percentage, which read as a probability of fit.
 - A match request still open after 60 s ends with a timeout message instead of spinning forever.
+- Skill extraction 0.3.0: 48 tools and methods the extractor missed on the 8 dev JDs of our K9
+  labels (SCSS, Webpack, EC2/ECS/EKS/RDS, TestRail, ELK, SDLC and more). On dev, F1 rises from
+  0.687 to 0.886 at precision 0.966; the test JDs are measured once, after this change.
 - Rating sheets are shared in `research/ratings/<rater>.csv` once both raters finish a batch; `evaluate.py` reads them from there (we still rate in the git-ignored `data/ratings/`).
 - Score bands fitted to our dev ratings: Moderate from 0.04 and Strong from 0.055 (were 0.03 and
   0.06 from score quantiles), which put 27 of 40 rated pairs in the right band instead of 20.
 - ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
+- Project plan scope confirmed on day 9: TF-IDF ships, evidence moves to V1.1, fine-tuning (K10)
+  stays out; one end-of-project post each replaces the kickoff, build-note and launch posts.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Verified on Render that `TRUSTED_PROXY_HOPS=1` gives each visitor their own rate-limit budget and
@@ -118,6 +136,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
   it's in a list, next to another skill or named clearly elsewhere. React Native and Unix are their
   own skills, not React and Linux. Dictionary names now match in any casing ("Typescript", "MySql"),
   which ESCO's capitalised labels had made case-sensitive.
+- "Computer science", "mathematics" and "statistics" next to a degree word ("BSc in Computer
+  Science") are no longer listed as skills (extraction 0.3.1): the job asks for a degree there.
+  Test precision 0.897 → 0.904, recall unchanged. In 0.3.2, words that only look like degrees
+  ("MS Excel", "a major part", "master SQL", "university partners") no longer hide the field; it
+  gives the same output on all 60 corpus documents, so the 0.3.1 numbers stand.
+- The band scale no longer says "provisional".
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the

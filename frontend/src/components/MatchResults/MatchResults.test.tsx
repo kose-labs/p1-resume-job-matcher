@@ -36,11 +36,12 @@ describe('results pane states', () => {
 
   it('shows the uncalibrated score with its band, caveat, skills, evidence and metadata', () => {
     render(<MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 1412 }} />)
-    expect(screen.getByText('Text similarity · TF-IDF')).toBeInTheDocument()
-    expect(screen.getByText('0.041')).toBeInTheDocument()
-    expect(screen.getByText('Moderate')).toBeInTheDocument()
-    expect(screen.getByRole('meter')).toHaveAccessibleName('Text similarity 0.041, moderate')
-    expect(screen.getByText(/Uncalibrated\. Best used to compare/)).toBeInTheDocument()
+    expect(screen.getByText('Estimated fit · TF-IDF')).toBeInTheDocument()
+    expect(screen.getByText('Moderate fit')).toBeInTheDocument()
+    expect(screen.getByText('≈ 45%')).toBeInTheDocument()
+    expect(screen.getByRole('meter')).toHaveAccessibleName('Moderate fit, about 45%')
+    expect(screen.getByText(/raw similarity 0\.041/)).toBeInTheDocument()
+    expect(screen.getByText(/Not a probability of being hired/)).toBeInTheDocument()
     expect(screen.getByText('Python')).toBeInTheDocument()
     expect(screen.getByText('Kubernetes')).toBeInTheDocument()
     expect(screen.getByText('Built FastAPI services')).toBeInTheDocument()
@@ -59,11 +60,12 @@ describe('results pane states', () => {
     expect(screen.getByText(/only its first part \(about 4 pages\) was searched/)).toBeVisible()
   })
 
-  it('caps the meter at its full scale for an unusually high score', () => {
+  it('keeps a very high score below 100%', () => {
     const result = { ...UNCALIBRATED, score: 0.34 }
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
-    expect(screen.getByText('Strong')).toBeInTheDocument()
-    expect(screen.getByRole('meter')).toHaveAttribute('value', '0.12')
+    expect(screen.getByText('Strong fit')).toBeInTheDocument()
+    expect(screen.getByText('≈ 95%')).toBeInTheDocument()
+    expect(screen.getByRole('meter')).toHaveAttribute('value', '97')
   })
 
   it('shows a calibrated score as a percentage, without bands or caveat', () => {
@@ -71,13 +73,13 @@ describe('results pane states', () => {
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
     expect(screen.getByText('Match score · TF-IDF')).toBeInTheDocument()
     expect(screen.getByText('72%')).toBeInTheDocument()
-    expect(screen.queryByText(/Uncalibrated/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/raw similarity/)).not.toBeInTheDocument()
   })
 
   it('names an unknown model as the API reports it', () => {
     const result = { ...UNCALIBRATED, model: { name: 'minilm-chunked', version: '0.2.0' } }
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
-    expect(screen.getByText('Text similarity · minilm-chunked')).toBeInTheDocument()
+    expect(screen.getByText('Estimated fit · minilm-chunked')).toBeInTheDocument()
   })
 
   it('says so when no skills were identified, and hides empty evidence', () => {

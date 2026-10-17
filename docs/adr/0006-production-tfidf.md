@@ -59,6 +59,9 @@ Constraints:
   Rebuild, and bump `TfidfMatcher.version`, whenever the tokenizer, stop words or parameters change.
   `tests/test_matching.py` fails if any term in the artefact no longer comes out of the current
   tokenizer unchanged, so a tokenizer change can't silently make CV terms unknown.
+  A rebuild also moves the raw scores, so refit the estimated-fit curve afterwards
+  (`scripts/j2-pairs/evaluate.py calibrate`) and update `FIT_CURVE` in
+  `frontend/src/lib/scoreBands.ts`.
 - The K7 numbers came from a vectorizer fitted on the evaluation corpus itself. The production fit
   differs, so the evaluation should be rerun with this artefact before quoting numbers for the
   deployed model (follow-up for K7/J2).

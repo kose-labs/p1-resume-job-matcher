@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { describeFailure } from './errors'
-import { scoreBand } from './scoreBands'
+import { FIT_BANDS, fitPercent, scoreBand, shownFit } from './scoreBands'
 import { applyTheme, readTheme } from './theme'
 
 afterEach(() => {
@@ -11,13 +11,51 @@ afterEach(() => {
 describe('scoreBand', () => {
   it.each([
     [0, 'Low'],
-    [0.0399, 'Low'],
-    [0.04, 'Moderate'],
-    [0.0549, 'Moderate'],
-    [0.055, 'Strong'],
+    [0.037, 'Low'],
+    [0.0372, 'Moderate'],
+    [0.0412, 'Moderate'],
+    [0.0529, 'Moderate'],
+    [0.0531, 'Strong'],
     [0.5, 'Strong'],
   ])('reads %s as %s', (score, band) => {
     expect(scoreBand(score)).toBe(band)
+  })
+
+  it('never contradicts the shown fit', () => {
+    for (let score = 0; score <= 0.2; score += 0.0001) {
+      const fit = shownFit(score)
+      const band = fit >= 60 ? 'Strong' : fit >= 45 ? 'Moderate' : 'Low'
+      expect(scoreBand(score)).toBe(band)
+    }
+  })
+})
+
+describe('fitPercent', () => {
+  it.each([
+    [0.04, 46],
+    [0.055, 59],
+    [0.11, 82],
+  ])('reads %s as %s%%, as evaluate.py calibrate reports', (score, percent) => {
+    expect(Math.round(fitPercent(score) * 100)).toBe(percent)
+  })
+
+  it('only rises, so the ranking of pairs never changes', () => {
+    const scores = [0, 0.001, 0.01, 0.03, 0.05, 0.08, 0.13, 0.5, 1]
+    const fits = scores.map(fitPercent)
+    fits.slice(1).forEach((fit, i) => expect(fit).toBeGreaterThan(fits[i]))
+    expect(fits[0]).toBeGreaterThanOrEqual(0)
+    expect(fits.at(-1)).toBeLessThan(1)
+  })
+
+  it('is shown rounded to the nearest 5%', () => {
+    expect(shownFit(0.11)).toBe(80)
+    expect(shownFit(0.0412)).toBe(45)
+    expect(shownFit(0)).toBe(0)
+  })
+
+  it('puts the band thresholds on the 5% grid', () => {
+    expect(FIT_BANDS.moderate % 5).toBe(0)
+    expect(FIT_BANDS.strong % 5).toBe(0)
   })
 })
 

@@ -44,6 +44,7 @@ def test_longest_label_wins(extractor: SkillExtractor) -> None:
         "The rest of the team works in R&D.",
         "Start from scratch, with less overhead and access to data on a computer.",
         "A spring release; our rust-free process.",
+        "Grab a pug-shaped mug, gulp your coffee and soap up; an elk walked by.",
     ],
 )
 def test_everyday_words_are_not_skills(extractor: SkillExtractor, text: str) -> None:
@@ -168,3 +169,64 @@ def test_clear_names_at_the_start_of_a_sentence(
     extractor: SkillExtractor, text: str, expected: list[str]
 ) -> None:
     assert names(extractor, text) == expected
+
+
+def test_tools_added_from_the_dev_misses(extractor: SkillExtractor) -> None:
+    text = (
+        "AWS (EC2, ECS, EKS, RDS) managed with infrastructure-as-code; Webpack, Gulp and SCSS; "
+        "TestRail for test documentation; ELK and Kibana; object-oriented design."
+    )
+    assert names(extractor, text) == [
+        "AWS",
+        "EC2",
+        "ECS",
+        "EKS",
+        "RDS",
+        "Infrastructure as Code",
+        "Webpack",
+        "Gulp",
+        "SCSS",
+        "TestRail",
+        "Test documentation",
+        "ELK stack",
+        "Kibana",
+        "OOP",
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Bachelor's degree or 4th year student in computer science, math or physics.",
+        "BSc/BA in Computer Science, Engineering or a related field.",
+        "Computer Science degree or equivalent experience.",
+        "M.Sc. in Mathematics or Statistics.",
+        "MS in Statistics, or a Master's in Mathematics.",
+        "BS/MS in Computer Science.",
+        "Major in Statistics.",
+    ],
+)
+def test_fields_of_study_next_to_a_degree_are_not_skills(
+    extractor: SkillExtractor, text: str
+) -> None:
+    assert extractor.extract(text) == []
+
+
+@pytest.mark.parametrize(
+    ("text", "field"),
+    [
+        ("Advanced MS Excel and statistics for reporting.", "statistics"),
+        ("A major part of the role is statistics and A/B testing.", "statistics"),
+        ("You will work with university partners on applied mathematics.", "mathematics"),
+        ("Master SQL, statistics and Python.", "statistics"),
+    ],
+)
+def test_words_that_only_look_like_degrees_keep_the_field(
+    extractor: SkillExtractor, text: str, field: str
+) -> None:
+    assert field in [name.lower() for name in names(extractor, text)]
+
+
+def test_fields_of_study_still_count_as_knowledge(extractor: SkillExtractor) -> None:
+    text = "Strong computer science fundamentals; statistics and probability; a BSc in Biology."
+    assert names(extractor, text) == ["computer science", "Statistics"]
