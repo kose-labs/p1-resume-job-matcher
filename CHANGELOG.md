@@ -81,8 +81,6 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
-- Verified on Render that `TRUSTED_PROXY_HOPS=1` gives each visitor their own rate-limit budget and
-  ignores forged `X-Forwarded-For` values; recorded in `docs/deployment.md` and `render.yaml`.
 - Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
   seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
@@ -92,6 +90,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
+- Verified on Render that `TRUSTED_PROXY_HOPS=1` gives each visitor their own rate-limit budget and
+  ignores forged `X-Forwarded-For` values; recorded in `docs/deployment.md` and `render.yaml`.
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
