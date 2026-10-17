@@ -265,16 +265,11 @@ DEGREE_WORDS = frozenset(
         "degrees",
         "bachelor",
         "bachelors",
-        "master",
         "masters",
         "bsc",
         "msc",
         "b.sc",
         "m.sc",
-        "ba",
-        "bs",
-        "ms",
-        "ma",
         "phd",
         "ph.d",
         "diploma",
@@ -283,11 +278,13 @@ DEGREE_WORDS = frozenset(
         "student",
         "students",
         "studying",
-        "major",
         "majoring",
-        "university",
     }
 )
+# Degree words that are also everyday words or other names ("MS Excel", "a major part", "master
+# SQL"): they only count when a degree follows ("MS in", "Master's", "BS/MS", "major in").
+AMBIGUOUS_DEGREE_WORDS = frozenset({"ba", "bs", "ma", "ms", "master", "major"})
+_DEGREE_FOLLOWERS = frozenset({"s", "in", "of", "degree", "degrees"})
 # A field of study names a degree up to 8 tokens after a degree word ("BSc in Computer Science,
 # Mathematics") or 2 before one ("Computer Science degree", "Computer Science B.Sc.").
 DEGREE_REACH_AFTER, DEGREE_REACH_BEFORE = 8, 2
@@ -305,7 +302,7 @@ class SkillExtractor:
     """Longest-match lookup of skill labels over the tokens of a text."""
 
     name = "esco-dictionary"
-    version = "0.3.1"
+    version = "0.3.2"
 
     def __init__(
         self, labels: Iterable[tuple[str, Skill]], case_sensitive: Iterable[str] = CASE_SENSITIVE
@@ -419,10 +416,21 @@ def _names_a_degree(skill: Skill, tokens: list[str], start: int) -> bool:
     if skill.name.lower() not in ACADEMIC_FIELDS:
         return False
     end = start + len(skill.name.split())
-    near = (
-        tokens[max(0, start - DEGREE_REACH_AFTER) : start] + tokens[end : end + DEGREE_REACH_BEFORE]
+    near = [
+        *range(max(0, start - DEGREE_REACH_AFTER), start),
+        *range(end, end + DEGREE_REACH_BEFORE),
+    ]
+    return any(_marks_a_degree(tokens, i) for i in near if i < len(tokens))
+
+
+def _marks_a_degree(tokens: list[str], i: int) -> bool:
+    """True if token i is a degree word; an ambiguous one also needs a degree after it."""
+    if tokens[i] in DEGREE_WORDS:
+        return True
+    after = tokens[i + 1] if i + 1 < len(tokens) else ""
+    return tokens[i] in AMBIGUOUS_DEGREE_WORDS and (
+        after in _DEGREE_FOLLOWERS or after in DEGREE_WORDS or after in AMBIGUOUS_DEGREE_WORDS
     )
-    return any(token in DEGREE_WORDS for token in near)
 
 
 def _stands_alone(sentence: str, name: str) -> bool:

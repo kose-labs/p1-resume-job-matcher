@@ -129,7 +129,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   which ESCO's capitalised labels had made case-sensitive.
 - "Computer science", "mathematics" and "statistics" next to a degree word ("BSc in Computer
   Science") are no longer listed as skills (extraction 0.3.1): the job asks for a degree there.
-  Test precision 0.897 → 0.904, recall unchanged.
+  Test precision 0.897 → 0.904, recall unchanged. In 0.3.2, words that only look like degrees
+  ("MS Excel", "a major part", "master SQL", "university partners") no longer hide the field; it
+  gives the same output on all 60 corpus documents, so the 0.3.1 numbers stand.
 - The band scale no longer says "provisional".
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
