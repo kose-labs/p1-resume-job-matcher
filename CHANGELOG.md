@@ -122,6 +122,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   which ESCO's capitalised labels had made case-sensitive.
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
+- On a phone, the job description box now leaves room for the rest of the form, so the CV picker
+  and Run match are on the first screen (375×667: Run match ended 19px below the screen, now 21px
+  above it). Tablets and desktops keep the taller box.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
   service's root directory (`backend/`), where Render resolves them. The first deploy failed looking
   for `backend/backend`.
