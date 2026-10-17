@@ -33,9 +33,11 @@ publish the numbers and the limits ([model card](docs/model_card.md)).
 - **A score you can read:** TF-IDF similarity fitted on 3,000 public job posts
   ([ADR-0006](docs/adr/0006-production-tfidf.md)), shown as a number with a provisional band and an
   honest caveat until it's calibrated against our ratings.
-- **Skills and evidence:** skill extraction with ESCO plus a tech dictionary (`app/ml/skills.py`)
-  and sentence-embedding evidence (K8) are built and being evaluated; the page shows them as soon as
-  the API returns them.
+- **Skills and evidence:** the job's skills, split into those the CV names and those it doesn't
+  (ESCO plus a tech dictionary, `app/ml/skills.py`), and the CV sentences that back up each
+  requirement: matched by TF-IDF, and only when the two name a skill in common.
+  Embedding models didn't beat TF-IDF on our ratings, so none ships in V1
+  ([ADR-0004](docs/adr/0004-embedding-model.md)).
 - **Privacy by design:** no database, no files, no CV or job text in logs, uploads never spooled to
   disk, Uvicorn's IP-recording access log off.
 - **Safe to expose:** size and type checks while the upload arrives, a rate limit of 10 matches a
@@ -137,8 +139,22 @@ On Windows PowerShell, type `curl.exe` instead of `curl`. The response:
 ```json
 {
   "score": 0.465,
-  "skills": { "matched": [], "missing": [] },
-  "evidence": [],
+  "skills": {
+    "matched": [
+      { "name": "Python", "esco_uri": "http://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d" },
+      { "name": "FastAPI", "esco_uri": null },
+      { "name": "PostgreSQL", "esco_uri": "http://data.europa.eu/esco/skill/a8d07b5a-c1a1-42c6-9d53-db9c7a2ca996" },
+      { "name": "Docker", "esco_uri": null }
+    ],
+    "missing": [{ "name": "REST API", "esco_uri": null }, { "name": "CI/CD", "esco_uri": null }]
+  },
+  "evidence": [
+    {
+      "requirement": "We need a backend engineer to build REST APIs in Python with FastAPI, PostgreSQL and Docker, deployed with CI/CD.",
+      "cv_excerpt": "Built FastAPI services in Python with PostgreSQL and Docker.",
+      "similarity": 0.5267
+    }
+  ],
   "model": { "name": "tfidf-baseline", "version": "0.1.0" },
   "warnings": ["uncalibrated_score"]
 }
