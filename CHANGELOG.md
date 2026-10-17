@@ -101,6 +101,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Score bands fitted to our dev ratings: Moderate from 0.04 and Strong from 0.055 (were 0.03 and
   0.06 from score quantiles), which put 27 of 40 rated pairs in the right band instead of 20.
 - ADR-0001 (data sources) and ADR-0002 (stack and hosting) accepted by both of us on 2026-10-12.
+- Project plan scope confirmed on day 9: TF-IDF ships, evidence moves to V1.1, fine-tuning (K10)
+  stays out; one end-of-project post each replaces the kickoff, build-note and launch posts.
 - `@types/node` is back on 24 to match Node 24 (a Dependabot update had raised it to 26).
 - README quickstart uses `npm ci`, and adds Windows notes (PowerShell, script execution policy, locked files).
 - Verified on Render that `TRUSTED_PROXY_HOPS=1` gives each visitor their own rate-limit budget and
