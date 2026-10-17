@@ -8,11 +8,16 @@ in it, and models silently cut text past their token limit. So both documents ar
 
 - the job description into **requirements**: sentences from its requirements / responsibilities /
   nice-to-have sections (benefits and company blurbs are skipped);
-- the CV into **sentences**, with long ones cut into overlapping windows so nothing is truncated.
+- the CV into **sentences**, with long ones cut into overlapping windows so no word is lost.
+
+The CV is capped at its first 150 chunks (about 4 pages), to keep a match within the latency target
+on a small CPU. A longer CV is still matched, on that part only, and the result says so
+(`cv_truncated`), so the API can warn the user.
 
 Each requirement is then matched to its most similar CV sentence (max similarity), and the score is
 the weighted mean of those best matches: "how well is each requirement covered, on average?". The
-best-matched pairs double as the **evidence** the API returns.
+best-matched pairs double as the **evidence** the API returns, one per CV sentence: when a sentence
+is the best match for several requirements, it is shown once, for the requirement it covers best.
 """
 
 from collections.abc import Sequence
@@ -32,6 +37,7 @@ SKIPPED_SECTIONS = {"benefits", "company"}
 MIN_WORDS = 3  # shorter lines ("Requirements", "Kyiv, remote") carry no requirement
 WINDOW_WORDS = 64  # well inside every shortlisted model's token limit
 WINDOW_STRIDE = 48  # 16 words of overlap, so a phrase cut at a boundary appears whole once
+CV_CHUNK_LIMIT = 150  # chunks of a CV that are matched; the rest is reported, not used
 
 
 class Encoder(Protocol):
@@ -61,10 +67,12 @@ class Evidence:
 
 @dataclass(frozen=True)
 class MatchResult:
-    """Score in [0, 1] and the strongest requirement–sentence pairs, best first."""
+    """Score in [0, 1], the strongest requirement–sentence pairs (best first), and whether the CV
+    was longer than the part that was matched."""
 
     score: float
     evidence: list[Evidence]
+    cv_truncated: bool = False
 
 
 def windows(sentence: str) -> list[str]:
@@ -92,8 +100,8 @@ def jd_requirements(text: str, limit: int = 40) -> list[Requirement]:
     return requirements[:limit]
 
 
-def cv_sentences(text: str, limit: int = 150) -> list[str]:
-    """Return the CV's sentences (and windows of long ones)."""
+def cv_sentences(text: str, limit: int | None = CV_CHUNK_LIMIT) -> list[str]:
+    """Return the CV's sentences (and windows of long ones), the first `limit` of them."""
     return _chunks(clean_text(text))[:limit]
 
 
@@ -116,9 +124,10 @@ class EmbeddingMatcher:
 
     def match(self, cv: str, jd: str) -> MatchResult:
         """Return the weighted mean best-match similarity and the top evidence pairs."""
-        requirements, sentences = jd_requirements(jd), cv_sentences(cv)
+        requirements, chunks = jd_requirements(jd), cv_sentences(cv, limit=None)
+        sentences, truncated = chunks[:CV_CHUNK_LIMIT], len(chunks) > CV_CHUNK_LIMIT
         if not requirements or not sentences:
-            return MatchResult(0.0, [])
+            return MatchResult(0.0, [], truncated)
         req_vecs = _normalize(self.encoder.encode([r.text for r in requirements]))
         cv_vecs = _normalize(self.encoder.encode(sentences))
         similarity = req_vecs @ cv_vecs.T  # cosine, since rows are unit length
@@ -126,9 +135,11 @@ class EmbeddingMatcher:
         where = similarity.argmax(axis=1)
         weights = np.array([r.weight for r in requirements])
         score = float(best @ weights / weights.sum())
-        top = np.argsort(-best)[: self.evidence_size]
-        evidence = [
-            Evidence(requirements[i].text, sentences[where[i]], round(float(best[i]), 4))
-            for i in top
-        ]
-        return MatchResult(round(score, 4), evidence)
+        evidence: list[Evidence] = []
+        for i in np.argsort(-best, kind="stable"):
+            excerpt = sentences[where[i]]
+            if len(evidence) == self.evidence_size:
+                break
+            if all(e.cv_excerpt != excerpt for e in evidence):
+                evidence.append(Evidence(requirements[i].text, excerpt, round(float(best[i]), 4)))
+        return MatchResult(round(score, 4), evidence, truncated)

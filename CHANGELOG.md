@@ -93,6 +93,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
+- Embedding matcher: a CV longer than 150 chunks (about 4 pages) is no longer cut silently. The
+  result now says so (`cv_truncated`), ready for an API warning. Evidence shows each CV sentence once.
 - Skill extraction (0.2.0) is more precise: a capitalised word at the start of a sentence ("Access
   to a laptop", "Express delivery") or a lone letter ("Series C") no longer counts as a skill unless
   it's in a list, next to another skill or named clearly elsewhere. React Native and Unix are their
