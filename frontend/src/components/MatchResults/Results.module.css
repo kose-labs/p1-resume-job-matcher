@@ -16,6 +16,66 @@
   border-top: 0;
 }
 
+/* Before the first match: a dashed outline of what a result will hold. */
+.empty {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.emptyTitle {
+  font-weight: var(--weight-medium);
+}
+
+.preview {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.preview strong {
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+/* The score as a card tinted by its band: green for Strong, amber for Moderate, plain for Low. */
+.block.scoreCard {
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* The card is its own frame, so the block after it needs no divider. */
+.scoreCard + .block {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.scoreCard[data-band='strong'] {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+.scoreCard[data-band='moderate'] {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+}
+
+.summary {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
 .label,
 .heading {
   color: var(--color-text);
@@ -111,7 +171,40 @@
   background: var(--color-text);
 }
 
-.report > .meta {
+/* The fill takes the band's colour; the track stays neutral. */
+.scoreCard[data-band='strong'] .meter::-webkit-meter-optimum-value,
+.scoreCard[data-band='strong'] .meter::-webkit-meter-suboptimum-value,
+.scoreCard[data-band='strong'] .meter::-webkit-meter-even-less-good-value {
+  background: var(--color-success);
+}
+
+/* Separate from the WebKit rule: an unknown pseudo-element would drop the whole selector list. */
+.scoreCard[data-band='strong'] .meter::-moz-meter-bar {
+  background: var(--color-success);
+}
+
+.scoreCard[data-band='moderate'] .meter::-webkit-meter-optimum-value,
+.scoreCard[data-band='moderate'] .meter::-webkit-meter-suboptimum-value,
+.scoreCard[data-band='moderate'] .meter::-webkit-meter-even-less-good-value {
+  background: var(--color-warning);
+}
+
+.scoreCard[data-band='moderate'] .meter::-moz-meter-bar {
+  background: var(--color-warning);
+}
+
+.scoreCard .meter,
+.scoreCard .meter::-webkit-meter-bar {
+  height: 6px;
+  border-radius: 3px;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
   padding-top: var(--space-3);
   border-top: var(--border);
 }
@@ -176,12 +269,55 @@
 }
 
 .tag {
-  padding: 0 var(--space-2);
+  padding: 1px var(--space-2);
   border: var(--border);
   border-radius: var(--radius-sm);
   background: var(--color-bg);
   font-size: var(--text-xs);
   line-height: var(--leading-sm);
+}
+
+.tag[data-kind='matched'] {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+/* Missing skills are an outline: something to add, not an error. */
+.tag[data-kind='missing'] {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
+}
+
+.coverage {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.coverage strong {
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+}
+
+.coverageBar {
+  height: 4px;
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-bg-muted);
+}
+
+.coverageBar > span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-success);
+}
+
+.tip {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
 }
 
 .evidence {

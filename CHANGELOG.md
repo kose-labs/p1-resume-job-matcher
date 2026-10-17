@@ -7,6 +7,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Frontend refresh for launch (Kobi): an intro that says what the page does in one line and three
+  steps, with the privacy promise; numbered form steps and a Clear button; the result as a card
+  tinted by band (green Strong, amber Moderate, plain Low) with what the band means and a meter in
+  its colour; skills coverage ("The CV names 7 of the job's 12 skills") with tinted chips and a tip
+  for the missing ones; Copy results (a plain-text summary); an empty state that shows what a result
+  holds instead of mentioning a "similarity score". No axe violations in any state or theme.
 - `evaluate.py compare` scores every model on the same rated pairs, with each model's gap to
   the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
 - `evaluate.py gaps` lists the pairs where a model's rank and our rating disagree most (IDs only),

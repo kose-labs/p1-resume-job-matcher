@@ -3,16 +3,18 @@ import styles from './AppShell.module.css'
 
 type Props = {
   topBar: ReactNode
+  intro: ReactNode
   inputs: ReactNode
   results: ReactNode
   footer: ReactNode
 }
 
-/** Page frame: top bar, a two-pane workspace (inputs left, results right) and a footer. */
-export function AppShell({ topBar, inputs, results, footer }: Props) {
+/** Page frame: top bar, intro, a two-pane workspace (inputs left, results right) and a footer. */
+export function AppShell({ topBar, intro, inputs, results, footer }: Props) {
   return (
     <div className={styles.shell}>
       {topBar}
+      {intro}
       <main className={styles.workspace}>
         <section className={styles.pane} aria-labelledby="inputs-title">
           <h2 id="inputs-title" className={styles.paneTitle}>

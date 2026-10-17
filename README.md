@@ -202,10 +202,11 @@ render.yaml         Render Blueprint for the backend
 
 ## Contributors and roles
 
-- **Kobi Ampem Afriyie** ([@Kobi-Ampem](https://github.com/Kobi-Ampem)): ML lead. Data, evaluation,
-  models.
+- **Kobi Ampem Afriyie** ([@Kobi-Ampem](https://github.com/Kobi-Ampem)): ML lead and frontend lead.
+  Data, rating protocol, evaluation and models; the web app's design and user experience for
+  launch (intro, result card, skills coverage, copy results).
 - **Semanu Kwaku Sebuava** ([@Ohm-Kel](https://github.com/Ohm-Kel)): engineering lead. API,
-  frontend, security, deployment.
+  security, deployment and CI, and the first version of the frontend.
 
 Every change goes through a pull request reviewed by the other person, with green CI
 ([contributing guide](CONTRIBUTING.md)).

@@ -40,7 +40,7 @@ export function MatchResults({ phase }: { phase: Phase }) {
           <ScoreSummary result={phase.result} />
           <SkillsBreakdown skills={phase.result.skills} />
           {phase.result.evidence.length > 0 && <EvidenceList evidence={phase.result.evidence} />}
-          <ResultMeta model={phase.result.model} elapsedMs={phase.elapsedMs} />
+          <ResultMeta result={phase.result} elapsedMs={phase.elapsedMs} />
         </div>
       )}
     </div>
