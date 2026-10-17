@@ -24,7 +24,7 @@ next request wakes it in about 40–60 seconds; the page shows "Waking up the se
 2. Click **Use sample data**, then **Run match**. Expect a band, an estimated fit, skills and the
    model line (`tfidf-baseline 0.1.0`).
 3. Glance at Render › **Logs** for `"level": "ERROR"` lines or a run of `5xx` statuses.
-4. Glance at Render › **Metrics** › memory: it should stay well under 512 MB (CI's load test peaks at
+4. Glance at Render › **Metrics** › Application Metrics › memory: it should stay well under 512 MB (CI's load test peaks at
    about 192 MB).
 
 Only ever test the live site with the sample CV or a synthetic PDF, never a real CV.
@@ -33,7 +33,7 @@ Only ever test the live site with the sample CV or a synthetic PDF, never a real
 1. Open a PR; CI must pass (hooks, backend, frontend, Docker build + `/health` + memory check).
 2. The other person approves; squash-merge.
 3. Render deploys the API when the checks on `main` pass; the **Deploy frontend** workflow publishes
-   the frontend. Watch both finish (Render › **Events**, GitHub › **Actions**).
+   the frontend. Watch both finish (Render › **Deploys**, GitHub › **Actions**).
 4. Run the daily check above.
 5. If the change touches the model, also follow "Model changes" below.
 
@@ -42,10 +42,11 @@ Only ever test the live site with the sample CV or a synthetic PDF, never a real
 ### The page is stuck on "Waking up the server…" (over 2 minutes)
 1. `curl -s https://p1-resume-job-matcher-api.onrender.com/health`. If it answers `ok`, the API is
    fine: hard-refresh the page.
-2. If not, Render › **Events**: did the last deploy fail? Render › **Logs**: did the app crash on
+2. If not, Render › **Deploys**: did the last deploy fail? Render › **Logs**: did the app crash on
    startup (for example a missing artefact or an import error)?
-3. Failed deploy → roll back (below). Crash loop on a deploy that used to work → check Render's
-   status page, then redeploy the last good commit.
+3. Failed deploy → roll back, following all three steps in "Rolling back" (a rollback switches off
+   auto-deploy). Crash loop on a deploy that used to work → check Render's status page, then
+   redeploy the last good commit.
 
 ### Every match says "Couldn't reach the server"
 - Usually configuration: `VITE_API_URL` (GitHub repo variable) or `CORS_ORIGINS` (`render.yaml`,
@@ -60,9 +61,11 @@ Only ever test the live site with the sample CV or a synthetic PDF, never a real
   [deployment.md](deployment.md#rate-limit-finding-the-proxy-count) and fix the value with a PR.
 
 ### 502s or restarts under load
-- Render › **Metrics**: memory near 512 MB means too many large CVs at once. Set
-  `MATCH_CONCURRENCY=1` in Render › **Environment** (the default is 2) and redeploy; open an issue
-  with the time and the request IDs.
+- Render › **Metrics** › Application Metrics: memory near 512 MB means too many large CVs at once.
+  Set `MATCH_CONCURRENCY=1` in Render › **Environment** (the default is 2) and redeploy; open an
+  issue with the time and the request IDs.
+- Then record the setting in `render.yaml` with a PR, as for `TRUSTED_PROXY_HOPS`, so a rebuilt
+  service keeps it.
 
 ### A user reports a wrong or strange result
 1. Ask for the **request ID**: it's in the `X-Request-ID` response header (browser developer tools ›
@@ -75,7 +78,7 @@ Only ever test the live site with the sample CV or a synthetic PDF, never a real
 
 ### Privacy incident: CV or job text, or an IP address, appears in logs
 This must never happen (a test enforces the allowed log fields).
-1. Roll back to the last good deploy immediately.
+1. Roll back to the last good deploy immediately ("Rolling back", all three steps).
 2. Tell the other person; open a private note of what was logged, from when to when.
 3. Render's logs can't be edited: if the exposure is real, contact Render support about deleting
    that log range, and record what you did.
@@ -87,8 +90,13 @@ This must never happen (a test enforces the allowed log fields).
   resume when it stops.
 
 ## Rolling back
-- **API:** Render › service › **Events** › the last good deploy › **Rollback**. Then revert the bad
-  commit on `main` with a PR so the next deploy doesn't bring it back.
+- **API:**
+  1. Render › service › **Deploys** › the last good deploy › **Rollback** › **Rollback to this
+     deploy**.
+  2. Revert the bad commit on `main` with a PR, so the next deploy doesn't bring it back.
+  3. **A rollback switches off auto-deploy** (Render's docs). Once the revert is merged and CI
+     passes, turn auto-deploy back on in **Settings**, and check that the next deploy runs.
+     Otherwise every later merge silently stays undeployed.
 - **Frontend:** revert the commit on `main` with a PR; the workflow redeploys. To be faster, re-run
   an earlier successful **Deploy frontend** run from GitHub › **Actions**.
 
@@ -99,14 +107,19 @@ The served score is the TF-IDF artefact ([ADR-0006](adr/0006-production-tfidf.md
   `scripts/j2-pairs/evaluate.py calibrate`, update `FIT_CURVE`, and bump `TfidfMatcher.version`.
 - **Any change that affects scores or skills** is evaluated on **dev** only. The test set was used
   for V1 on 2026-10-17 ([evaluation.md](evaluation.md)); a new test claim needs a fresh test set.
-- Bump the version the API reports, and add a row to the model card's **Changes** table.
+- Bump the **model version** (`TfidfMatcher.version`, or `SkillExtractor.version` for skills); the
+  page shows the TF-IDF one as `tfidf-baseline 0.1.0`. Add a row to the model card's **Changes**
+  table. The **app version** (`VERSION` in `app/main.py`, served at `/api/v1/version`) changes with
+  a release, not with each model change.
 
 ## Routine maintenance
 - **Dependabot** opens weekly PRs. Merge patch and minor updates when CI passes. Treat Python or
   Node major versions (for example the base image to Python 3.14) as their own change: build the
   image, run the memory check, and deploy on a quiet day.
-- **Free tiers:** Render Free sleeps when idle and has monthly limits; GitHub Pages and Actions are
-  free for public repos. Check Render's usage page once a month.
+- **Free tiers:** Render Free sleeps when idle and has monthly limits. When the workspace's 750 free
+  instance hours or its bandwidth run out, Render **suspends all Free web services until the next
+  month**, so check Render's usage page once a month. GitHub Pages and Actions are free for public
+  repos.
 
 ## Contacts
 
