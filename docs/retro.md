@@ -38,4 +38,10 @@ record.
 
 ## V2 ideas (captured as issues)
 From the failure analysis in [evaluation.md](evaluation.md) and what we cut from V1:
-- *[link each issue here once it's created]*
+- #88 a seniority signal (years and level asked vs shown)
+- #89 skill coverage combined with TF-IDF in the score
+- #90 drop boilerplate and generic process words before scoring
+- #91 synonyms for short forms (DRF, k8s)
+- #92 one CV against several jobs, ranked
+- #93 refit the fit curve on all 120 pairs and rate a fresh test set
+- #47 guard PDF extraction against decompression bombs (from V1's security review)
