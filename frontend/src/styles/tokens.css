@@ -73,7 +73,13 @@
   --color-warning: #92400e;
   --color-danger: #b91c1c;
   --color-danger-bg: #fef2f2;
+  /* Soft tints behind a band: Strong, Moderate (the text on them stays --color-text). */
+  --color-success-bg: #f0fdf4;
+  --color-success-border: #bbf7d0;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
   --shadow-xs: 0 1px 1px rgb(0 0 0 / 4%);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 5%), 0 1px 3px rgb(0 0 0 / 4%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -95,7 +101,12 @@
     --color-warning: #e3b567;
     --color-danger: #f19a9a;
     --color-danger-bg: #2a1215;
+    --color-success-bg: #0d1f15;
+    --color-success-border: #1f4d33;
+    --color-warning-bg: #231a09;
+    --color-warning-border: #5c4413;
     --shadow-xs: none;
+    --shadow-sm: none;
   }
 }
 
@@ -117,5 +128,10 @@
   --color-warning: #e3b567;
   --color-danger: #f19a9a;
   --color-danger-bg: #2a1215;
+  --color-success-bg: #0d1f15;
+  --color-success-border: #1f4d33;
+  --color-warning-bg: #231a09;
+  --color-warning-border: #5c4413;
   --shadow-xs: none;
+  --shadow-sm: none;
 }

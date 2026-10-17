@@ -1,5 +1,6 @@
 import { JD_MAX, JD_MIN } from '../api/client'
 import styles from './Field.module.css'
+import { StepNumber } from './StepNumber'
 
 type Props = {
   value: string
@@ -12,9 +13,12 @@ export function JobDescriptionInput({ value, onChange, error }: Props) {
   const length = value.trim().length
   return (
     <div className={styles.field}>
-      <label htmlFor="jd" className={styles.label}>
-        Job description
-      </label>
+      <div className={styles.labelRow}>
+        <StepNumber n={1} />
+        <label htmlFor="jd" className={styles.label}>
+          Job description
+        </label>
+      </div>
       <textarea
         id="jd"
         className={styles.textarea}
