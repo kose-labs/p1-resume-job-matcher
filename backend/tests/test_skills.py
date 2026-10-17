@@ -192,3 +192,41 @@ def test_tools_added_from_the_dev_misses(extractor: SkillExtractor) -> None:
         "Kibana",
         "OOP",
     ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Bachelor's degree or 4th year student in computer science, math or physics.",
+        "BSc/BA in Computer Science, Engineering or a related field.",
+        "Computer Science degree or equivalent experience.",
+        "M.Sc. in Mathematics or Statistics.",
+        "MS in Statistics, or a Master's in Mathematics.",
+        "BS/MS in Computer Science.",
+        "Major in Statistics.",
+    ],
+)
+def test_fields_of_study_next_to_a_degree_are_not_skills(
+    extractor: SkillExtractor, text: str
+) -> None:
+    assert extractor.extract(text) == []
+
+
+@pytest.mark.parametrize(
+    ("text", "field"),
+    [
+        ("Advanced MS Excel and statistics for reporting.", "statistics"),
+        ("A major part of the role is statistics and A/B testing.", "statistics"),
+        ("You will work with university partners on applied mathematics.", "mathematics"),
+        ("Master SQL, statistics and Python.", "statistics"),
+    ],
+)
+def test_words_that_only_look_like_degrees_keep_the_field(
+    extractor: SkillExtractor, text: str, field: str
+) -> None:
+    assert field in [name.lower() for name in names(extractor, text)]
+
+
+def test_fields_of_study_still_count_as_knowledge(extractor: SkillExtractor) -> None:
+    text = "Strong computer science fundamentals; statistics and probability; a BSc in Biology."
+    assert names(extractor, text) == ["computer science", "Statistics"]

@@ -31,6 +31,10 @@ precision ≥ 0.80). They are general, not tuned on our labels:
   "computer" for computer equipment; as single words they match almost any job post. Preferred
   labels ("algorithms", "firmware") and multi-word synonyms are kept, except those starting
   with an article ("a computer").
+- **Fields of study aren't skills.** "Computer science", "mathematics" and "statistics" are skipped
+  next to a degree word ("BSc in Computer Science", "Computer Science degree"):
+  there they name a degree, which the labelling guide doesn't count. Elsewhere ("statistics and
+  probability", "computer science fundamentals") they still count.
 """
 
 import gzip
@@ -253,6 +257,37 @@ CASE_SENSITIVE: frozenset[str] = frozenset(
 )
 # "R&D" would otherwise read as the R language.
 _RND = re.compile(r"\bR\s*&\s*D\b")
+# Skills that are also fields of study, and the words that mark a degree ("BSc", "student").
+ACADEMIC_FIELDS = frozenset({"computer science", "mathematics", "statistics"})
+DEGREE_WORDS = frozenset(
+    {
+        "degree",
+        "degrees",
+        "bachelor",
+        "bachelors",
+        "masters",
+        "bsc",
+        "msc",
+        "b.sc",
+        "m.sc",
+        "phd",
+        "ph.d",
+        "diploma",
+        "graduate",
+        "undergraduate",
+        "student",
+        "students",
+        "studying",
+        "majoring",
+    }
+)
+# Degree words that are also everyday words or other names ("MS Excel", "a major part", "master
+# SQL"): they only count when a degree follows ("MS in", "Master's", "BS/MS", "major in").
+AMBIGUOUS_DEGREE_WORDS = frozenset({"ba", "bs", "ma", "ms", "master", "major"})
+_DEGREE_FOLLOWERS = frozenset({"s", "in", "of", "degree", "degrees"})
+# A field of study names a degree up to 8 tokens after a degree word ("BSc in Computer Science,
+# Mathematics") or 2 before one ("Computer Science degree", "Computer Science B.Sc.").
+DEGREE_REACH_AFTER, DEGREE_REACH_BEFORE = 8, 2
 # ESCO labels at least this long are trusted; shorter ones are mostly ambiguous acronyms.
 MIN_ESCO_LABEL = 4
 _QUALIFIER = re.compile(r"\s*\([^)]*\)\s*$")
@@ -267,7 +302,7 @@ class SkillExtractor:
     """Longest-match lookup of skill labels over the tokens of a text."""
 
     name = "esco-dictionary"
-    version = "0.3.0"
+    version = "0.3.2"
 
     def __init__(
         self, labels: Iterable[tuple[str, Skill]], case_sensitive: Iterable[str] = CASE_SENSITIVE
@@ -330,7 +365,10 @@ class SkillExtractor:
         for sentence in split_sentences(cleaned):
             found = self._matches(sentence)
             skills = {skill for skill, _, _ in found}
+            tokens = [token for token, _ in token_spans(sentence)]
             for skill, start, cased in found:
+                if _names_a_degree(skill, tokens, start):
+                    continue
                 alone = start == 0 and _stands_alone(sentence, cased or "")
                 named = cased is not None and _named_as_language(sentence, cased)
                 ambiguous = (
@@ -370,6 +408,29 @@ class SkillExtractor:
             else:
                 i += 1
         return found
+
+
+def _names_a_degree(skill: Skill, tokens: list[str], start: int) -> bool:
+    """True for a field of study written next to a degree word: "BSc in Computer Science",
+    "Computer Science degree"."""
+    if skill.name.lower() not in ACADEMIC_FIELDS:
+        return False
+    end = start + len(skill.name.split())
+    near = [
+        *range(max(0, start - DEGREE_REACH_AFTER), start),
+        *range(end, end + DEGREE_REACH_BEFORE),
+    ]
+    return any(_marks_a_degree(tokens, i) for i in near if i < len(tokens))
+
+
+def _marks_a_degree(tokens: list[str], i: int) -> bool:
+    """True if token i is a degree word; an ambiguous one also needs a degree after it."""
+    if tokens[i] in DEGREE_WORDS:
+        return True
+    after = tokens[i + 1] if i + 1 < len(tokens) else ""
+    return tokens[i] in AMBIGUOUS_DEGREE_WORDS and (
+        after in _DEGREE_FOLLOWERS or after in DEGREE_WORDS or after in AMBIGUOUS_DEGREE_WORDS
+    )
 
 
 def _stands_alone(sentence: str, name: str) -> bool:

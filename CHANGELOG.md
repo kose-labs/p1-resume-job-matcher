@@ -28,6 +28,13 @@ and versions follow [Semantic Versioning](https://semver.org/).
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
 - Model card draft (`docs/model_card.md`): intended and out-of-scope use, models, evaluation design,
   proxy and serving numbers, limitations and ethics; rated results to follow on day 8.
+- The score reads as an **estimated fit from 0 to 100%**: how we'd likely rate the pair (rating 1 →
+  0%, rating 5 → 100%), from a logistic curve fitted on our 40 dev ratings (`app.ml.calibration`,
+  `evaluate.py calibrate`). It lands 0.76 rating points from our ratings on held-out JDs (1.08 for
+  guessing the mean) and keeps the ranking, so ρ is unchanged. The band leads ("Strong fit") and the
+  fit is rounded to 5% ("≈ 80%"), since its typical error is about ±19 points; the raw similarity
+  stays visible. Bands sit on the shown fit (Low ≤ 40%, Moderate 45–55%, Strong ≥ 60%), so the band
+  never contradicts the percentage; 27 of 40 dev pairs land in the right band, as before.
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
@@ -120,6 +127,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
   it's in a list, next to another skill or named clearly elsewhere. React Native and Unix are their
   own skills, not React and Linux. Dictionary names now match in any casing ("Typescript", "MySql"),
   which ESCO's capitalised labels had made case-sensitive.
+- "Computer science", "mathematics" and "statistics" next to a degree word ("BSc in Computer
+  Science") are no longer listed as skills (extraction 0.3.1): the job asks for a degree there.
+  Test precision 0.897 → 0.904, recall unchanged. In 0.3.2, words that only look like degrees
+  ("MS Excel", "a major part", "master SQL", "university partners") no longer hide the field; it
+  gives the same output on all 60 corpus documents, so the 0.3.1 numbers stand.
+- The band scale no longer says "provisional".
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the

@@ -4,6 +4,7 @@
     uv run python evaluate.py score <scores.csv>   # Spearman ρ of a model's scores vs our ratings
     uv run python evaluate.py compare ../../data/scores/*.csv   # every model against TF-IDF
     uv run python evaluate.py gaps <scores.csv>    # the pairs where model and ratings disagree most
+    uv run python evaluate.py calibrate <scores.csv>   # fit the score -> estimated fit curve
 
 `agreement` compares `research/ratings/kobi.csv` and `research/ratings/semanu.csv` (committed once
 both of us have finished a batch, see the protocol) on the pairs both have rated: quadratic
@@ -25,6 +26,11 @@ on the same 0–1 scale (percentile ranks, since only the order matters for ρ) 
 where they disagree most, with which way the model is wrong. It prints IDs only, never CV or JD
 text: read a pair in `data/pairs/packet-main.html` or the calibration packet.
 
+`calibrate` fits the curve that turns a raw score into an estimated fit from 0 to 100% (rating
+1 → 0%, rating 5 → 100%) on the **dev** pairs, and reports how far its estimates land from our
+mean ratings: on dev itself, leaving one JD out at a time, and against always guessing the mean.
+`--check test` reports the same error on the test pairs, with the curve still fitted on dev.
+
 The metric functions live in `backend/app/ml/metrics.py`, where CI tests them against
 scikit-learn and SciPy reference values.
 """
@@ -40,6 +46,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "backend"))  # use the tested metric code
 
+from app.ml.calibration import fit_logistic, fit_percent  # noqa: E402
 from app.ml.metrics import LEVELS, ranks, spearman, weighted_kappa  # noqa: E402
 
 PAIRS = ROOT / "data" / "pairs" / "pairs.jsonl"
@@ -192,6 +199,52 @@ def gaps(path: Path, split: str, top: int) -> None:
         )
 
 
+def _fit(rows: list[tuple[float, float]]) -> tuple[float, float]:
+    """(a, b) for (score, mean rating) rows, ratings rescaled from 1-5 to 0-1."""
+    return fit_logistic([s for s, _ in rows], [(r - 1) / 4 for _, r in rows])
+
+
+def _mae(rows: list[tuple[float, float]], a: float, b: float) -> float:
+    """Mean absolute error of the curve's estimates, in rating points."""
+    return sum(abs(1 + 4 * fit_percent(s, a, b) - r) for s, r in rows) / len(rows)
+
+
+def calibrate(path: Path, check: str | None, bands: list[float]) -> None:
+    """Fit the score -> fit curve on dev and report its error, optionally on test too."""
+    scores = read_scores(path)
+
+    def rows_of(split: str) -> dict[str, list[tuple[float, float]]]:
+        return {jd: [(scores[k], r) for k, r in rows] for jd, rows in rated_by_jd(split).items()}
+
+    dev = rows_of("dev")
+    flat = [row for rows in dev.values() for row in rows]
+    a, b = _fit(flat)
+    held_out = [
+        abs(1 + 4 * fit_percent(s, *_fit([x for j, rs in dev.items() if j != jd for x in rs])) - r)
+        for jd, rows in dev.items()
+        for s, r in rows
+    ]
+    mean = sum(r for _, r in flat) / len(flat)
+    print(f"dev: {len(flat)} pairs from {len(dev)} JDs, fitted on dev")
+    print(f"curve: fit = 1 / (1 + exp(-({a:.4f} + {b:.4f} * ln score)))")
+    print(
+        f"error in rating points: dev {_mae(flat, a, b):.3f}, leave one JD out "
+        f"{sum(held_out) / len(held_out):.3f}, always guessing the mean {_mae_mean(flat, mean):.3f}"
+    )
+    for score_ in bands:
+        print(f"  score {score_:.3f} -> {100 * fit_percent(score_, a, b):.1f}%")
+    if check:
+        rows = [row for rs in rows_of(check).values() for row in rs]
+        print(
+            f"{check}: {len(rows)} pairs, error {_mae(rows, a, b):.3f} rating points "
+            f"(always guessing the dev mean: {_mae_mean(rows, mean):.3f})"
+        )
+
+
+def _mae_mean(rows: list[tuple[float, float]], mean: float) -> float:
+    return sum(abs(mean - r) for _, r in rows) / len(rows)
+
+
 def main() -> None:
     """Parse the command line and run the chosen report."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -209,8 +262,14 @@ def main() -> None:
     gp.add_argument("scores", type=Path)
     gp.add_argument("--split", choices=["dev", "test", "all"], default="dev")
     gp.add_argument("--top", type=int, default=10)
+    ca = sub.add_parser("calibrate", help="fit the score -> estimated fit curve on dev")
+    ca.add_argument("scores", type=Path)
+    ca.add_argument("--check", choices=["test"], help="also report the error on this split")
+    ca.add_argument("--bands", type=float, nargs="*", default=[0.04, 0.055])
     args = parser.parse_args()
-    if args.command == "gaps":
+    if args.command == "calibrate":
+        calibrate(args.scores, args.check, args.bands)
+    elif args.command == "gaps":
         gaps(args.scores, args.split, args.top)
     elif args.command == "agreement":
         agreement()
