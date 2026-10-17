@@ -97,6 +97,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
   not as a percentage, which read as a probability of fit.
 - A match request still open after 60 s ends with a timeout message instead of spinning forever.
+- Skill extraction 0.3.0: 48 tools and methods the extractor missed on the 8 dev JDs of our K9
+  labels (SCSS, Webpack, EC2/ECS/EKS/RDS, TestRail, ELK, SDLC and more). On dev, F1 rises from
+  0.687 to 0.886 at precision 0.966; the test JDs are measured once, after this change.
 - Rating sheets are shared in `research/ratings/<rater>.csv` once both raters finish a batch; `evaluate.py` reads them from there (we still rate in the git-ignored `data/ratings/`).
 - Score bands fitted to our dev ratings: Moderate from 0.04 and Strong from 0.055 (were 0.03 and
   0.06 from score quantiles), which put 27 of 40 rated pairs in the right band instead of 20.

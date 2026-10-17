@@ -44,6 +44,7 @@ def test_longest_label_wins(extractor: SkillExtractor) -> None:
         "The rest of the team works in R&D.",
         "Start from scratch, with less overhead and access to data on a computer.",
         "A spring release; our rust-free process.",
+        "Grab a pug-shaped mug, gulp your coffee and soap up; an elk walked by.",
     ],
 )
 def test_everyday_words_are_not_skills(extractor: SkillExtractor, text: str) -> None:
@@ -168,3 +169,26 @@ def test_clear_names_at_the_start_of_a_sentence(
     extractor: SkillExtractor, text: str, expected: list[str]
 ) -> None:
     assert names(extractor, text) == expected
+
+
+def test_tools_added_from_the_dev_misses(extractor: SkillExtractor) -> None:
+    text = (
+        "AWS (EC2, ECS, EKS, RDS) managed with infrastructure-as-code; Webpack, Gulp and SCSS; "
+        "TestRail for test documentation; ELK and Kibana; object-oriented design."
+    )
+    assert names(extractor, text) == [
+        "AWS",
+        "EC2",
+        "ECS",
+        "EKS",
+        "RDS",
+        "Infrastructure as Code",
+        "Webpack",
+        "Gulp",
+        "SCSS",
+        "TestRail",
+        "Test documentation",
+        "ELK stack",
+        "Kibana",
+        "OOP",
+    ]
