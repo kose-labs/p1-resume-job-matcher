@@ -1,10 +1,14 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["playwright==1.64.0", "pillow==13.0.0"]
+# ///
 """Record the README demo GIF from the live site, with the sample data only (never a real CV).
 
-    uv run --no-project --with playwright --with pillow python scripts/demo/record_gif.py \\
-        docs/screenshots/demo.gif
+    uv run scripts/demo/record_gif.py docs/screenshots/demo.gif
 
-Uses the installed Google Chrome (`channel="chrome"`). Waits for the backend to wake up first, then
-takes a screenshot per step and joins them with Pillow, 960 px wide.
+Uses the installed Google Chrome (`channel="chrome"`), so `playwright install` isn't needed. Waits
+for the backend to wake up first, then takes a screenshot per step and joins them with Pillow,
+960 px wide. The dependencies are pinned above, so a re-run draws the same way.
 """
 
 import asyncio
