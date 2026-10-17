@@ -1,7 +1,7 @@
-# Annotation protocol v1: rating CV–job pairs
+# Annotation protocol v2: rating CV–job pairs
 
-**Owner:** Kobi (K2) · **Status:** draft, to agree at the kickoff sync (J1) · **Used by:** J2, and
-the P1 evaluation
+**Owner:** Kobi (K2) · **Status:** v2 proposed after the calibration batch, to agree on the
+mid-project call (J3) · **Used by:** J2, and the P1 evaluation
 
 Our main metric is **Spearman ρ between the matcher's scores and our ratings** of CV–JD pairs. The
 metric is only as good as the ratings, so this document fixes how we rate. If you can rate a pair
@@ -57,6 +57,25 @@ PostgreSQL, Docker, CI/CD. Nice to have: AWS, Redis."*
 7. **Ignore everything protected or irrelevant:** gender, age, nationality, photo-style details,
    writing style and English quality (unless the JD asks for an English level).
 
+## Rules from the calibration batch (v2)
+The calibration batch agreed well (weighted κ 0.785, 95% of pairs within one point), so the scale
+stays as it is. These rules settle the cases where we disagreed (p003, p005, p013) or both wrote a
+note (p009, p017). Apply them **after** placing the pair on the scale above.
+
+8. **Seniority moves a rating by at most one point.** Within about 2 years of the ask: no change.
+   A bigger gap, either way: −1. Exception: a CV with **no professional experience for a role that
+   asks for 3+ years** is at most **3**, however well the skills match.
+9. **Overqualified is not a penalty.** Six years for a junior role is rated on skills, like any
+   other CV (p017).
+10. **A must-have that isn't written is missing,** even when it is probably there. One exception:
+    a skill **implied by a named tool** counts (Django or pandas imply Python, Spring implies Java,
+    React implies JavaScript, Kubernetes implies containers). We rate the CV the matcher sees.
+11. **A CV that names no technologies** is at most **2** for a technical job: we can't tell what
+    the person can do (p005).
+12. **Layout, length and English don't lower a rating** (rule 7). An unusual CV or imperfect
+    English is rated on the skills and experience it shows, unless the JD asks for an English level
+    (p003). If an unusual layout makes the content hard to find, read it twice before rating.
+
 ## The rating sheet
 One CSV per rater. You rate in your working copy, `data/ratings/<rater>.csv` (git-ignored, like all
 of `data/`):
@@ -111,3 +130,4 @@ stratified so every rating level shows up:
 | Version | Date | Change |
 |---|---|---|
 | v1 | 2026-10-10 | First version (K2) |
+| v2 | 2026-10-13 | Rules 8–12 from the calibration batch (κ 0.785): seniority, overqualification, unwritten must-haves, CVs without technologies, layout and English |
