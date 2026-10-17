@@ -26,6 +26,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   with reduced motion. Lighthouse accessibility 100, and no axe violations in any state or theme.
 - "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
+- Model card draft (`docs/model_card.md`): intended and out-of-scope use, models, evaluation design,
+  proxy and serving numbers, limitations and ethics; rated results to follow on day 8.
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
