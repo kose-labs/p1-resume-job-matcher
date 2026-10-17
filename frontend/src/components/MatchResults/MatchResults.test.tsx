@@ -48,6 +48,17 @@ describe('results pane states', () => {
     expect(screen.getByText('tfidf-baseline 0.1.0 · 1,412 ms round trip')).toBeInTheDocument()
   })
 
+  it('explains the evidence, and says when a long CV was only partly searched', () => {
+    const { rerender } = render(
+      <MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 5 }} />,
+    )
+    expect(screen.getByText(/CV sentences that name a skill/)).toBeInTheDocument()
+    expect(screen.queryByText(/only its first part/)).not.toBeInTheDocument()
+    const long = { ...UNCALIBRATED, warnings: ['uncalibrated_score', 'cv_truncated'] }
+    rerender(<MatchResults phase={{ kind: 'done', result: long, elapsedMs: 5 }} />)
+    expect(screen.getByText(/only its first part \(about 4 pages\) was searched/)).toBeVisible()
+  })
+
   it('caps the meter at its full scale for an unusually high score', () => {
     const result = { ...UNCALIBRATED, score: 0.34 }
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
