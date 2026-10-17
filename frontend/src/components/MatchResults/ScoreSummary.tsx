@@ -1,11 +1,11 @@
 import type { MatchResponse } from '../../api/client'
-import { FIT_BANDS, fitPercent, scoreBand } from '../../lib/scoreBands'
+import { FIT_BANDS, fitPercent, scoreBand, shownFit } from '../../lib/scoreBands'
 import styles from './Results.module.css'
 
 // Plain names for the models the API reports.
 const METHODS: Record<string, string> = { 'tfidf-baseline': 'TF-IDF' }
 
-/** The score as an estimated fit, its band and a flat meter, with the raw similarity and a caveat. */
+/** The band first, the estimated fit rounded to 5%, a flat meter, the raw similarity and a caveat. */
 export function ScoreSummary({ result }: { result: MatchResponse }) {
   const method = METHODS[result.model.name] ?? result.model.name
 
@@ -22,14 +22,14 @@ export function ScoreSummary({ result }: { result: MatchResponse }) {
     )
   }
 
-  const fit = Math.round(fitPercent(result.score) * 100)
+  const fit = shownFit(result.score)
   const band = scoreBand(result.score)
   return (
     <div className={styles.block}>
       <p className={styles.label}>Estimated fit · {method}</p>
       <p className={styles.valueRow}>
-        <span className={styles.value}>{fit}%</span>
-        <span className={styles.band}>{band}</span>
+        <span className={styles.verdict}>{band} fit</span>
+        <span className={styles.band}>≈ {fit}%</span>
       </p>
       <meter
         className={styles.meter}
@@ -38,8 +38,8 @@ export function ScoreSummary({ result }: { result: MatchResponse }) {
         low={FIT_BANDS.moderate}
         high={FIT_BANDS.strong}
         optimum={100}
-        value={fit}
-        aria-label={`Estimated fit ${fit}%, ${band.toLowerCase()}`}
+        value={Math.round(fitPercent(result.score) * 100)}
+        aria-label={`${band} fit, about ${fit}%`}
       />
       <p className={styles.scale}>
         Low &lt; {FIT_BANDS.moderate}% · Moderate {FIT_BANDS.moderate}–{FIT_BANDS.strong}% · Strong

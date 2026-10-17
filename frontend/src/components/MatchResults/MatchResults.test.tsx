@@ -37,9 +37,9 @@ describe('results pane states', () => {
   it('shows the uncalibrated score with its band, caveat, skills, evidence and metadata', () => {
     render(<MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 1412 }} />)
     expect(screen.getByText('Estimated fit · TF-IDF')).toBeInTheDocument()
-    expect(screen.getByText('47%')).toBeInTheDocument()
-    expect(screen.getByText('Moderate')).toBeInTheDocument()
-    expect(screen.getByRole('meter')).toHaveAccessibleName('Estimated fit 47%, moderate')
+    expect(screen.getByText('Moderate fit')).toBeInTheDocument()
+    expect(screen.getByText('≈ 45%')).toBeInTheDocument()
+    expect(screen.getByRole('meter')).toHaveAccessibleName('Moderate fit, about 45%')
     expect(screen.getByText(/raw similarity 0\.041/)).toBeInTheDocument()
     expect(screen.getByText(/Not a probability of being hired/)).toBeInTheDocument()
     expect(screen.getByText('Python')).toBeInTheDocument()
@@ -52,7 +52,8 @@ describe('results pane states', () => {
   it('keeps a very high score below 100%', () => {
     const result = { ...UNCALIBRATED, score: 0.34 }
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
-    expect(screen.getByText('Strong')).toBeInTheDocument()
+    expect(screen.getByText('Strong fit')).toBeInTheDocument()
+    expect(screen.getByText('≈ 95%')).toBeInTheDocument()
     expect(screen.getByRole('meter')).toHaveAttribute('value', '97')
   })
 

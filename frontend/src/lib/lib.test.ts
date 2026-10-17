@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { describeFailure } from './errors'
-import { FIT_BANDS, fitPercent, scoreBand } from './scoreBands'
+import { FIT_BANDS, fitPercent, scoreBand, shownFit } from './scoreBands'
 import { applyTheme, readTheme } from './theme'
 
 afterEach(() => {
@@ -36,6 +36,12 @@ describe('fitPercent', () => {
     fits.slice(1).forEach((fit, i) => expect(fit).toBeGreaterThan(fits[i]))
     expect(fits[0]).toBeGreaterThanOrEqual(0)
     expect(fits.at(-1)).toBeLessThan(1)
+  })
+
+  it('is shown rounded to the nearest 5%', () => {
+    expect(shownFit(0.11)).toBe(80)
+    expect(shownFit(0.0412)).toBe(45)
+    expect(shownFit(0)).toBe(0)
   })
 
   it('puts the band thresholds where the raw bands are', () => {

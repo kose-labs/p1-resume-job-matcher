@@ -200,8 +200,8 @@ describe('running a match', () => {
     fillForm()
     fireEvent.click(runButton())
 
-    expect(await screen.findByText('47%')).toBeInTheDocument()
-    expect(screen.getByText('Moderate')).toBeInTheDocument()
+    expect(await screen.findByText('≈ 45%')).toBeInTheDocument()
+    expect(screen.getByText('Moderate fit')).toBeInTheDocument()
     expect(screen.getByText('Python')).toBeInTheDocument()
     expect(screen.getByText(/^tfidf-baseline 0\.1\.0 · \d+ ms round trip$/)).toBeInTheDocument()
 
@@ -216,7 +216,7 @@ describe('running a match', () => {
     render(<App />)
     fillForm()
     fireEvent.keyDown(screen.getByLabelText('Job description'), { key: 'Enter', metaKey: true })
-    expect(await screen.findByText('47%')).toBeInTheDocument()
+    expect(await screen.findByText('≈ 45%')).toBeInTheDocument()
   })
 
   it('shows a spinner and a skeleton while matching, and ignores repeat requests', async () => {
@@ -232,7 +232,7 @@ describe('running a match', () => {
     fireEvent.keyDown(screen.getByLabelText('Job description'), { key: 'Enter', ctrlKey: true })
     expect(matchCalls(fetchMock)).toHaveLength(1)
     answer(json(RESULT))
-    expect(await screen.findByText('47%')).toBeInTheDocument()
+    expect(await screen.findByText('≈ 45%')).toBeInTheDocument()
   })
 
   it('shows API errors with a title and what to do next', async () => {

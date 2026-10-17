@@ -31,7 +31,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - The score reads as an **estimated fit from 0 to 100%**: how we'd likely rate the pair (rating 1 →
   0%, rating 5 → 100%), from a logistic curve fitted on our 40 dev ratings (`app.ml.calibration`,
   `evaluate.py calibrate`). It lands 0.76 rating points from our ratings on held-out JDs (1.08 for
-  guessing the mean) and keeps the ranking, so ρ is unchanged. The raw similarity stays visible.
+  guessing the mean) and keeps the ranking, so ρ is unchanged. The band leads ("Strong fit") and the
+  fit is rounded to 5% ("≈ 80%"), since its typical error is about ±19 points; the raw similarity
+  stays visible.
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).

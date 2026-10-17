@@ -22,6 +22,14 @@ export function fitPercent(score: number): number {
   return 1 / (1 + Math.exp(-z))
 }
 
+/**
+ * The fit as shown: rounded to the nearest 5%. Its typical error is about ±19 points (0.76 rating
+ * points), so a single percent would suggest a precision it doesn't have.
+ */
+export function shownFit(score: number): number {
+  return Math.round((fitPercent(score) * 100) / 5) * 5
+}
+
 /** The band thresholds on the fit scale, as whole percentages (46 and 59). */
 export const FIT_BANDS = {
   moderate: Math.round(fitPercent(SCORE_BANDS.moderate) * 100),
