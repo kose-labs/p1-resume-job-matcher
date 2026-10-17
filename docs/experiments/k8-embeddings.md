@@ -1,7 +1,7 @@
 # K8: sentence embeddings with chunking
 
 **Owner:** Kobi · **Date:** 2026-10-10 · **Code:** `backend/app/ml/embeddings.py`,
-`scripts/k8-embeddings/compare.py` · **Decision:** [ADR-0004](../adr/0004-embedding-model.md) (proposed)
+`scripts/k8-embeddings/compare.py` · **Decision:** [ADR-0004](../adr/0004-embedding-model.md): TF-IDF stays the score; decided on the dev ratings
 
 ## Hypothesis
 Pretrained sentence embeddings rank CV–JD pairs closer to human judgement than TF-IDF (K7), because

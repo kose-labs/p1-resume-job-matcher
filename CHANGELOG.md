@@ -88,6 +88,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Uvicorn's `FORWARDED_ALLOW_IPS=*`, which let clients bypass the limit with a forged header.
 
 ### Changed
+- ADR-0004 decided on our dev ratings (40 pairs, κ 0.770): TF-IDF stays the score (ρ 0.660); no
+  embedding beats it by the 0.10 we required, so none ships in V1.
 - Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
   seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
