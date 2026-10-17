@@ -211,13 +211,16 @@ which the generated client already understands.
 ## Milestones
 | Day | Milestone | Owner |
 |---|---|---|
-| 1 (10-09) | Plan, ADR-0001/0002, repo scaffold with CI green, security baseline, kickoff posts | Both |
+| 1 (10-09) | Plan, ADR-0001/0002, repo scaffold with CI green, security baseline | Both |
 | 2 (10-10) | Evaluation corpus collected; PDF parser chosen (ADR-0003) | Kobi · Semanu |
 | 3 (10-11) | TF-IDF baseline scores; `/api/v1/match` skeleton with validation | Kobi · Semanu |
 | 4 (10-12) | Embeddings (ADR-0004); frontend upload form via generated client | Kobi · Semanu |
 | 5 (10-13) | Skill extraction with F1; model lifecycle and concurrency; mid-project check | Both |
 | 6–10 | *Set at the mid-project check* | Both |
 | 10 (10-18) | Launch: Definition of Done met, deployed, launch posts | Both |
+
+No kickoff posts: we post only at the end of the project (decided together on
+2026-10-17). The kickoff drafts stay in `docs/posts/` as material for the final posts.
 
 ## Learning goals
 **Semanu (engineering):** validating uploads safely (magic bytes, streaming size limits), designing
