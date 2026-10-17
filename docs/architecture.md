@@ -67,9 +67,9 @@ would hide them and the page could only say "couldn't reach the server".
 | Limits | `app/limits.py`, `app/ratelimit.py` | Size, type, rate; client IP counted from the right of `X-Forwarded-For` (`TRUSTED_PROXY_HOPS`) | — |
 | PDF extraction | `app/extract.py` | pdfplumber, column split (gap needs text on both sides), scanned/encrypted/page checks | ADR-0003 |
 | Preprocessing | `app/ml/preprocess.py` | Cleanup, sections, sentences, tech-aware tokens (C++, C#, .NET, Go) | plan (K6) |
-| Matchers | `app/ml/tfidf.py`, `app/ml/embeddings.py` (#40) | TF-IDF (served); chunked embeddings for evidence, under evaluation | ADR-0006, ADR-0004 (proposed) |
-| Skills | `app/ml/skills.py` | ESCO + tech dictionary, longest match; not yet wired into the API | K9 |
-| Match service | `app/matching.py` | Built once at startup (lifespan), injected with `Depends`; TF-IDF from the committed artefact, scores flagged `uncalibrated_score` | ADR-0005, ADR-0006 |
+| Matchers | `app/ml/tfidf.py`, `app/ml/embeddings.py` | TF-IDF serves the score and the evidence; the embedding matcher stays for V1.1 (none beat TF-IDF on dev) | ADR-0006, ADR-0004 |
+| Skills | `app/ml/skills.py` | ESCO + tech dictionary, longest match; splits the job's skills into matched and missing, and gates evidence | K9 |
+| Match service | `app/matching.py` | Built once at startup (lifespan), injected with `Depends`: score (TF-IDF, flagged `uncalibrated_score`), skills, and evidence pairs that share a skill; `cv_truncated` past 150 CV chunks | ADR-0005, ADR-0006 |
 | Logging | `app/observability.py` | JSON lines: request ID, method, path, status, duration, CV size, pages, outcome code | plan (privacy) |
 | Evaluation | `backend/app/ml/metrics.py`, `scripts/j2-pairs/` | Weighted κ, Spearman ρ with JD-level bootstrap | protocol |
 

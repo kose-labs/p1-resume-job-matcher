@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Evidence: each result lists up to five job requirements with the CV sentence that backs them
+  up, matched by TF-IDF and kept only when the two name a skill in common; a long CV adds a
+  `cv_truncated` warning, which the page explains.
 - `evaluate.py compare` scores every model on the same rated pairs, with each model's gap to
   the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
 - `evaluate.py gaps` lists the pairs where a model's rank and our rating disagree most (IDs only),
