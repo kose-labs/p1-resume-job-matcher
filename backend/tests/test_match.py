@@ -42,6 +42,9 @@ def test_valid_request_returns_the_contract_shape(client: TestClient) -> None:
     assert 0 < body["score"] <= 1  # the test CV and JD share Python, FastAPI and REST APIs
     assert body["model"]["name"] == "tfidf-baseline"
     assert body["warnings"] == ["uncalibrated_score"]
+    # The test CV names Python and FastAPI but not REST APIs, which the job asks for.
+    assert [skill["name"] for skill in body["skills"]["matched"]] == ["Python", "FastAPI"]
+    assert [skill["name"] for skill in body["skills"]["missing"]] == ["REST API"]
 
 
 def test_file_type_is_checked_by_content_not_name(client: TestClient) -> None:
