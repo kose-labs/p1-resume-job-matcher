@@ -7,6 +7,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `evaluate.py compare` scores every model on the same rated pairs, with each model's gap to
+  the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
+- `evaluate.py gaps` lists the pairs where a model's rank and our rating disagree most (IDs only),
+  for the model card's failure analysis.
 - Matches now list the job's skills in two groups: those the CV names (matched) and those it
   doesn't (missing), with ESCO links where they exist (K9 extractor, loaded once at startup).
 - A rating page for J2 (`scripts/j2-pairs/rate.py`): one pair at a time, keys 1–5, notes, saved to
