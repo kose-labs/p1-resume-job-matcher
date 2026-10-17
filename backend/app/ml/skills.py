@@ -55,6 +55,8 @@ class Skill:
 
 # name -> other spellings. Spellings are matched as tokens, so "node" also needs "node.js".
 # Kept to what tech job posts actually ask for: languages, frameworks, data, cloud, DevOps, QA.
+# 0.3.0 adds the named tools and methods the extractor missed on the 8 dev JDs of the K9 labels
+# (none from the 12 test JDs), checked on 1,500 other Djinni JDs for wrong matches.
 TECH_SKILLS: dict[str, list[str]] = {
     # Languages
     "Python": ["python3"],
@@ -76,6 +78,7 @@ TECH_SKILLS: dict[str, list[str]] = {
     "Bash": ["shell scripting", "shell scripts"],
     "HTML": ["html5"],
     "CSS": ["css3"],
+    "SCSS": ["sass"],
     "Dart": [],
     # Web and backend frameworks
     "Django": ["django rest framework", "drf"],
@@ -93,11 +96,16 @@ TECH_SKILLS: dict[str, list[str]] = {
     "Vue.js": ["vue"],
     "Next.js": ["nextjs"],
     "Redux": [],
+    "Webpack": [],
+    "Gulp": [],
+    "Pug": [],
     ".NET": ["asp.net", ".net core"],
     "Laravel": [],
     "Ruby on Rails": ["Rails"],
     "REST API": ["REST", "restful", "rest apis", "restful api", "restful apis"],
     "GraphQL": [],
+    "SOAP": [],
+    "API design": [],
     "gRPC": [],
     "Microservices": ["microservice", "microservice architecture"],
     # Data and ML
@@ -112,12 +120,25 @@ TECH_SKILLS: dict[str, list[str]] = {
     "PyTorch": [],
     "TensorFlow": [],
     "Keras": [],
+    "Theano": [],
+    "Caffe": [],
+    "Matplotlib": [],
     "Spark": ["pyspark", "apache spark"],
     "Airflow": ["apache airflow"],
     "Hadoop": [],
     "Tableau": [],
     "Power BI": ["powerbi"],
     "Statistics": [],
+    "Calculus": [],
+    "Linear algebra": [],
+    "Big data": ["bigdata"],
+    "Data mining": [],
+    "Data modelling": ["data modeling"],
+    "Data architecture": [],
+    "Data visualisation": ["data visualization", "visualize data", "visualise data"],
+    "Predictive modelling": ["predictive modeling", "predictive models", "predictive model"],
+    "Data structures": [],
+    "Text processing": [],
     "Data analysis": [],
     "ETL": [],
     "A/B testing": [],
@@ -130,6 +151,11 @@ TECH_SKILLS: dict[str, list[str]] = {
     "Oracle": [],
     "SQLite": [],
     "NoSQL": [],
+    "Time-series databases": [
+        "time-series database",
+        "time series database",
+        "time series databases",
+    ],
     "Kafka": ["apache kafka"],
     "RabbitMQ": [],
     # Cloud and DevOps
@@ -140,6 +166,16 @@ TECH_SKILLS: dict[str, list[str]] = {
     "Kubernetes": [],
     "Terraform": [],
     "Ansible": [],
+    "Infrastructure as Code": ["iac", "infrastructure-as-code"],
+    "Configuration management": [],
+    "GitOps": [],
+    "EC2": [],
+    "ECS": [],
+    "EKS": [],
+    "RDS": [],
+    "Istio": [],
+    "Anthos Service Mesh": [],
+    "Google Config Connector": [],
     "Helm": [],
     "Jenkins": [],
     "GitLab CI": ["gitlab ci/cd"],
@@ -150,6 +186,10 @@ TECH_SKILLS: dict[str, list[str]] = {
     "Nginx": [],
     "Prometheus": [],
     "Grafana": [],
+    "Stackdriver": ["stack driver"],
+    "ELK stack": ["ELK"],
+    "Kibana": [],
+    "TCP/IP": [],
     "Git": ["github", "gitlab", "bitbucket"],
     # Testing and QA
     "Unit testing": ["unit tests", "unit test"],
@@ -162,14 +202,29 @@ TECH_SKILLS: dict[str, list[str]] = {
     "JUnit": [],
     "Postman": [],
     "API testing": [],
-    "TDD": ["test-driven development"],
+    "TDD": ["test-driven development", "test driven development"],
+    "TestRail": ["test rail"],
+    "Test documentation": ["tests documentation"],
+    "Acceptance criteria": [],
     # Ways of working
     "Agile": ["agile development", "agile methodology", "agile methodologies"],
     "Scrum": [],
     "Kanban": [],
     "Jira": [],
-    "OOP": ["object-oriented programming"],
+    "OOP": ["object-oriented programming", "object-oriented", "object oriented"],
     "Design patterns": [],
+    "Functional programming": [],
+    "SDLC": ["software development lifecycle", "software development life cycle"],
+    "Markdown": [],
+    "AsciiDoc": ["ascii doc"],
+    # Security
+    "OAuth": ["oauth2"],
+    "OpenID Connect": [],
+    "SAML": [],
+    "Burp Suite": [],
+    "Qualys": [],
+    "Rapid7": [],
+    "F-Secure": [],
 }
 
 # Names that are also everyday words: they only match with this exact casing in the text.
@@ -190,6 +245,10 @@ CASE_SENSITIVE: frozenset[str] = frozenset(
         "REST",
         "Rails",
         "Spark",
+        "Gulp",
+        "Pug",
+        "SOAP",
+        "ELK",
     }
 )
 # "R&D" would otherwise read as the R language.
@@ -208,7 +267,7 @@ class SkillExtractor:
     """Longest-match lookup of skill labels over the tokens of a text."""
 
     name = "esco-dictionary"
-    version = "0.2.0"
+    version = "0.3.0"
 
     def __init__(
         self, labels: Iterable[tuple[str, Skill]], case_sensitive: Iterable[str] = CASE_SENSITIVE

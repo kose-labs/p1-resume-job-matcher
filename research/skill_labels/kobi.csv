@@ -1,21 +1,365 @@
 jd_id,skill,level
-jd-data-science-01,,
-jd-data-science-04,,
-jd-data-science-05,,
-jd-devops-02,,
-jd-devops-03,,
-jd-devops-04,,
-jd-devops-05,,
-jd-java-01,,
-jd-java-02,,
-jd-java-04,,
-jd-java-05,,
-jd-javascript-02,,
-jd-javascript-04,,
-jd-javascript-05,,
-jd-python-02,,
-jd-python-04,,
-jd-python-05,,
-jd-qa-03,,
-jd-qa-04,,
-jd-qa-05,,
+jd-data-science-01,Python,required
+jd-data-science-01,R,required
+jd-data-science-01,Java,required
+jd-data-science-01,C++,required
+jd-data-science-01,SQL,required
+jd-data-science-01,NoSQL,required
+jd-data-science-01,machine learning,required
+jd-data-science-01,statistics,required
+jd-data-science-01,mathematics,required
+jd-data-science-01,linear algebra,required
+jd-data-science-01,calculus,required
+jd-data-science-01,Bayesian statistics,required
+jd-data-science-01,algorithms,required
+jd-data-science-01,data structures,required
+jd-data-science-01,data analysis,required
+jd-data-science-01,data mining,required
+jd-data-science-01,predictive modelling,required
+jd-data-science-01,data visualisation,required
+jd-data-science-01,ETL,required
+jd-data-science-01,big data,required
+jd-data-science-01,data modelling,required
+jd-data-science-01,data architecture,required
+jd-data-science-01,scikit-learn,required
+jd-data-science-01,Theano,required
+jd-data-science-01,TensorFlow,required
+jd-data-science-01,Keras,required
+jd-data-science-01,Matplotlib,required
+jd-data-science-01,Caffe,required
+jd-data-science-04,GCP,required
+jd-data-science-04,AWS,required
+jd-data-science-04,big data,required
+jd-data-science-04,Spark,required
+jd-data-science-04,MapReduce,required
+jd-data-science-04,SQL,required
+jd-data-science-04,BigQuery,required
+jd-data-science-04,Pub/Sub,required
+jd-data-science-04,Cloud Composer,required
+jd-data-science-04,Data Fusion,required
+jd-data-science-04,Google Cloud Storage,required
+jd-data-science-04,GKE,required
+jd-data-science-04,Python,required
+jd-data-science-04,JavaScript,required
+jd-data-science-04,Terraform,required
+jd-data-science-04,IAM,required
+jd-data-science-04,data pipelines,required
+jd-data-science-04,ETL,required
+jd-data-science-04,data lake,required
+jd-data-science-04,Git,required
+jd-data-science-04,CI/CD,required
+jd-data-science-04,design patterns,required
+jd-data-science-04,performance testing,required
+jd-data-science-04,access control,required
+jd-data-science-04,JDBC,required
+jd-data-science-04,SFTP,required
+jd-data-science-04,HTTP,required
+jd-data-science-04,MQTT,required
+jd-data-science-05,SQL,required
+jd-data-science-05,Excel,required
+jd-data-science-05,data analysis,required
+jd-data-science-05,business intelligence,required
+jd-data-science-05,R,nice
+jd-data-science-05,Python,nice
+jd-data-science-05,statistical modelling,nice
+jd-devops-02,AWS,required
+jd-devops-02,Infrastructure as Code,required
+jd-devops-02,Python,required
+jd-devops-02,REST API,required
+jd-devops-02,web services,required
+jd-devops-02,ECS,required
+jd-devops-02,EKS,required
+jd-devops-02,RDS,required
+jd-devops-02,EC2,required
+jd-devops-02,Terraform,required
+jd-devops-02,AWS CDK,required
+jd-devops-02,AWS CloudFormation,required
+jd-devops-02,OOP,required
+jd-devops-02,AWS IAM,required
+jd-devops-02,Docker,required
+jd-devops-02,TCP/IP,required
+jd-devops-02,networking,required
+jd-devops-02,routing,required
+jd-devops-02,firewalls,required
+jd-devops-02,network security,required
+jd-devops-02,monitoring,required
+jd-devops-03,Azure,required
+jd-devops-03,Azure Pipelines,required
+jd-devops-03,Git,required
+jd-devops-03,GitLab,required
+jd-devops-03,PowerShell,required
+jd-devops-03,Bash,required
+jd-devops-03,Active Directory,required
+jd-devops-03,Windows Server,required
+jd-devops-03,CI/CD,required
+jd-devops-03,Agile,required
+jd-devops-03,Centrify,nice
+jd-devops-03,Delinea,nice
+jd-devops-03,Python,nice
+jd-devops-03,Linux,nice
+jd-devops-03,SSH,nice
+jd-devops-03,PAM,nice
+jd-devops-03,Kerberos,nice
+jd-devops-03,MS SQL,nice
+jd-devops-03,access management,nice
+jd-devops-04,CI/CD,required
+jd-devops-04,Unreal Engine,required
+jd-devops-04,Windows,required
+jd-devops-04,Linux,required
+jd-devops-04,Python,required
+jd-devops-04,PowerShell,required
+jd-devops-04,Groovy,required
+jd-devops-04,Jenkins,required
+jd-devops-04,Perforce,required
+jd-devops-04,SQL,required
+jd-devops-04,NoSQL,required
+jd-devops-04,monitoring,required
+jd-devops-04,Docker,nice
+jd-devops-04,Docker Compose,nice
+jd-devops-04,Kubernetes,nice
+jd-devops-04,Helm,nice
+jd-devops-04,Ansible,nice
+jd-devops-04,configuration management,nice
+jd-devops-05,Infrastructure as Code,required
+jd-devops-05,configuration management,required
+jd-devops-05,Terraform,required
+jd-devops-05,Google Config Connector,required
+jd-devops-05,Ansible,required
+jd-devops-05,Chef,required
+jd-devops-05,Puppet,required
+jd-devops-05,PowerShell,required
+jd-devops-05,Bash,required
+jd-devops-05,Docker,required
+jd-devops-05,AWS,required
+jd-devops-05,Anthos Service Mesh,required
+jd-devops-05,Istio,required
+jd-devops-05,Git,required
+jd-devops-05,GitHub,required
+jd-devops-05,pull requests,required
+jd-devops-05,GitOps,required
+jd-devops-05,CI/CD,required
+jd-devops-05,GitHub Actions,required
+jd-devops-05,Google Cloud Build,required
+jd-devops-05,React,required
+jd-devops-05,Node.js,required
+jd-devops-05,CSS,required
+jd-devops-05,HTML,required
+jd-devops-05,MySQL,required
+jd-devops-05,Redis,required
+jd-devops-05,PostgreSQL,required
+jd-devops-05,Confluence,required
+jd-devops-05,Markdown,required
+jd-devops-05,AsciiDoc,required
+jd-devops-05,JavaScript,required
+jd-devops-05,TypeScript,required
+jd-devops-05,Go,required
+jd-devops-05,Python,required
+jd-devops-05,Django,required
+jd-devops-05,OpenID Connect,required
+jd-devops-05,OAuth,required
+jd-devops-05,SAML,required
+jd-devops-05,design patterns,required
+jd-devops-05,OOP,required
+jd-devops-05,functional programming,required
+jd-devops-05,networking,required
+jd-devops-05,REST API,required
+jd-devops-05,microservices,required
+jd-devops-05,Stackdriver,required
+jd-devops-05,Prometheus,required
+jd-devops-05,ELK stack,required
+jd-devops-05,Qualys,required
+jd-devops-05,Burp Suite,required
+jd-devops-05,Rapid7,required
+jd-devops-05,Kali Linux,required
+jd-devops-05,Tenable,required
+jd-devops-05,F-Secure,required
+jd-devops-05,Agile,required
+jd-devops-05,TDD,required
+jd-devops-05,monitoring,required
+jd-devops-05,cloud computing,required
+jd-devops-05,PKI,nice
+jd-devops-05,asymmetric cryptography,nice
+jd-devops-05,OWASP Top 10,nice
+jd-devops-05,UX design,nice
+jd-devops-05,UI design,nice
+jd-java-01,Java,required
+jd-java-01,JavaScript,required
+jd-java-01,OOP,required
+jd-java-01,SDLC,required
+jd-java-01,unit testing,required
+jd-java-01,information security,required
+jd-java-01,REST API,required
+jd-java-01,SOAP,required
+jd-java-01,web services,required
+jd-java-01,Git,required
+jd-java-01,Agile,required
+jd-java-02,Java,required
+jd-java-02,Spring,required
+jd-java-02,React,required
+jd-java-02,Angular,required
+jd-java-02,REST API,required
+jd-java-02,JavaScript,required
+jd-java-02,Node.js,required
+jd-java-04,Java,required
+jd-java-04,Spring,required
+jd-java-04,Docker,required
+jd-java-04,API design,required
+jd-java-04,software architecture,required
+jd-java-04,SDLC,required
+jd-java-04,PostgreSQL,nice
+jd-java-04,MongoDB,nice
+jd-java-04,time-series databases,nice
+jd-java-04,AWS,nice
+jd-java-04,Azure,nice
+jd-java-04,Kubernetes,nice
+jd-java-04,Kafka,nice
+jd-java-05,Java,required
+jd-java-05,software architecture,required
+jd-java-05,React,required
+jd-java-05,Java EE,required
+jd-java-05,Spring Boot,required
+jd-java-05,Oracle Commerce,required
+jd-java-05,HTML,required
+jd-java-05,CSS,required
+jd-java-05,JavaScript,required
+jd-java-05,TypeScript,required
+jd-java-05,Bootstrap,required
+jd-java-05,Material UI,required
+jd-java-05,responsive design,required
+jd-java-05,Webpack,required
+jd-java-05,Redux,required
+jd-java-05,Flux,required
+jd-java-05,React Hooks,required
+jd-java-05,single-page applications,required
+jd-java-05,server-side rendering,required
+jd-java-05,virtual DOM,required
+jd-java-05,GraphQL,required
+jd-java-05,WebSockets,required
+jd-java-05,YAML,required
+jd-java-05,Spring Cloud,required
+jd-java-05,Spring Data,required
+jd-java-05,Spring Security,required
+jd-java-05,Spring Integration,required
+jd-java-05,SQL,required
+jd-java-05,NoSQL,required
+jd-java-05,message queues,required
+jd-java-05,API gateway,required
+jd-java-05,Apigee,required
+jd-java-05,GCP,required
+jd-java-05,unit testing,required
+jd-java-05,microservices,required
+jd-java-05,REST API,required
+jd-java-05,Agile,required
+jd-java-05,Scrum,required
+jd-javascript-02,Vue.js,required
+jd-javascript-02,JavaScript,required
+jd-javascript-02,Webpack,required
+jd-javascript-02,Vue CLI,required
+jd-javascript-02,Git,required
+jd-javascript-02,HTML,required
+jd-javascript-02,CSS,required
+jd-javascript-02,SCSS,required
+jd-javascript-02,micro-frontends,nice
+jd-javascript-02,Webpack Module Federation,nice
+jd-javascript-02,Node.js,nice
+jd-javascript-02,Fastify,nice
+jd-javascript-02,TypeScript,nice
+jd-javascript-02,AWS,nice
+jd-javascript-02,Docker,nice
+jd-javascript-02,Kubernetes,nice
+jd-javascript-02,Nginx,nice
+jd-javascript-02,Protobuf,nice
+jd-javascript-02,WebSockets,nice
+jd-javascript-02,Jira,nice
+jd-javascript-02,Confluence,nice
+jd-javascript-04,JavaScript,required
+jd-javascript-04,React,required
+jd-javascript-04,TypeScript,required
+jd-javascript-04,cross-browser layout,required
+jd-javascript-04,responsive design,required
+jd-javascript-04,Webpack,required
+jd-javascript-04,Gulp,required
+jd-javascript-04,HTML,required
+jd-javascript-04,Pug,required
+jd-javascript-04,CSS,required
+jd-javascript-04,SCSS,required
+jd-javascript-04,Git,required
+jd-javascript-05,React,required
+jd-javascript-05,TypeScript,required
+jd-javascript-05,test automation,nice
+jd-javascript-05,Mocha,nice
+jd-javascript-05,email templates,nice
+jd-javascript-05,AWS Amplify,nice
+jd-python-02,Python,required
+jd-python-02,microservices,required
+jd-python-02,Git,required
+jd-python-02,web scraping,required
+jd-python-02,Scrapy,required
+jd-python-02,AWS,nice
+jd-python-04,Python,required
+jd-python-04,REST API,required
+jd-python-04,search,required
+jd-python-04,text processing,required
+jd-python-04,natural language processing,required
+jd-python-04,relational databases,required
+jd-python-04,NoSQL,required
+jd-python-04,unit testing,required
+jd-python-04,TDD,required
+jd-python-04,Git,required
+jd-python-04,AWS,nice
+jd-python-04,JavaScript,nice
+jd-python-04,HTML,nice
+jd-python-04,CSS,nice
+jd-python-04,Docker,nice
+jd-python-05,Python,required
+jd-python-05,Django,required
+jd-python-05,Django REST Framework,required
+jd-python-05,API development,required
+jd-python-05,PostgreSQL,required
+jd-python-05,MySQL,required
+jd-python-05,Redis,required
+jd-python-05,debugging,required
+jd-qa-03,software testing,required
+jd-qa-03,test strategy,required
+jd-qa-03,test case design,required
+jd-qa-03,bug reporting,required
+jd-qa-03,test automation,required
+jd-qa-03,web testing,required
+jd-qa-03,mobile testing,required
+jd-qa-03,Agile,required
+jd-qa-03,Jira,required
+jd-qa-03,Confluence,required
+jd-qa-04,manual testing,required
+jd-qa-04,test documentation,required
+jd-qa-04,web testing,required
+jd-qa-04,mobile testing,required
+jd-qa-04,API testing,required
+jd-qa-04,REST API,required
+jd-qa-04,TestRail,required
+jd-qa-04,Agile,required
+jd-qa-04,Scrum,required
+jd-qa-04,acceptance criteria,nice
+jd-qa-04,Git,nice
+jd-qa-04,Jenkins,nice
+jd-qa-04,Kibana,nice
+jd-qa-04,Postman,nice
+jd-qa-05,manual testing,required
+jd-qa-05,test case design,required
+jd-qa-05,test plans,required
+jd-qa-05,test automation,required
+jd-qa-05,web testing,required
+jd-qa-05,browser DevTools,required
+jd-qa-05,client-server architecture,required
+jd-qa-05,REST API,required
+jd-qa-05,Postman,required
+jd-qa-05,SQL,required
+jd-qa-05,requirements analysis,required
+jd-qa-05,Agile,required
+jd-qa-05,Scrum,required
+jd-qa-05,C#,nice
+jd-qa-05,Selenium,nice
+jd-qa-05,xUnit,nice
+jd-qa-05,Test IT,nice
+jd-qa-05,MTM,nice
+jd-qa-05,TestLink,nice
+jd-qa-05,HP ALM,nice
