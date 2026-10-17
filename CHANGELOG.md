@@ -45,6 +45,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   labelling packet for 20 JDs and reports precision, recall and F1 (guide in
   `research/skill_labeling_guide.md`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
+- Runbook (`docs/runbook.md`): the daily check, releasing, incidents (cold start, CORS, rate limit,
+  memory, wrong results, privacy, abuse), rollback, model changes and maintenance.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
   gzipped-JSON artefact that `scripts/build_tfidf_artifact.py` rebuilds byte for byte. Scores are
