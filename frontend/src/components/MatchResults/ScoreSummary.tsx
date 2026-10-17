@@ -1,11 +1,11 @@
 import type { MatchResponse } from '../../api/client'
-import { METER_MAX, SCORE_BANDS, scoreBand } from '../../lib/scoreBands'
+import { FIT_BANDS, fitPercent, scoreBand } from '../../lib/scoreBands'
 import styles from './Results.module.css'
 
 // Plain names for the models the API reports.
 const METHODS: Record<string, string> = { 'tfidf-baseline': 'TF-IDF' }
 
-/** The score as a number, its band and a flat meter, with the caveat for an uncalibrated score. */
+/** The score as an estimated fit, its band and a flat meter, with the raw similarity and a caveat. */
 export function ScoreSummary({ result }: { result: MatchResponse }) {
   const method = METHODS[result.model.name] ?? result.model.name
 
@@ -22,31 +22,32 @@ export function ScoreSummary({ result }: { result: MatchResponse }) {
     )
   }
 
-  const value = result.score.toFixed(3)
+  const fit = Math.round(fitPercent(result.score) * 100)
   const band = scoreBand(result.score)
   return (
     <div className={styles.block}>
-      <p className={styles.label}>Text similarity · {method}</p>
+      <p className={styles.label}>Estimated fit · {method}</p>
       <p className={styles.valueRow}>
-        <span className={styles.value}>{value}</span>
+        <span className={styles.value}>{fit}%</span>
         <span className={styles.band}>{band}</span>
       </p>
       <meter
         className={styles.meter}
         min={0}
-        max={METER_MAX}
-        low={SCORE_BANDS.moderate}
-        high={SCORE_BANDS.strong}
-        optimum={METER_MAX}
-        value={Math.min(result.score, METER_MAX)}
-        aria-label={`Text similarity ${value}, ${band.toLowerCase()}`}
+        max={100}
+        low={FIT_BANDS.moderate}
+        high={FIT_BANDS.strong}
+        optimum={100}
+        value={fit}
+        aria-label={`Estimated fit ${fit}%, ${band.toLowerCase()}`}
       />
       <p className={styles.scale}>
-        Low &lt; {SCORE_BANDS.moderate} · Moderate {SCORE_BANDS.moderate}–{SCORE_BANDS.strong} ·
-        Strong ≥ {SCORE_BANDS.strong} (provisional)
+        Low &lt; {FIT_BANDS.moderate}% · Moderate {FIT_BANDS.moderate}–{FIT_BANDS.strong}% · Strong
+        ≥ {FIT_BANDS.strong}% · raw similarity {result.score.toFixed(3)}
       </p>
       <p className={styles.caveat}>
-        Uncalibrated. Best used to compare several jobs against the same CV.
+        How we&apos;d likely rate this pair, learned from 40 CV–job pairs we rated by hand. Not a
+        probability of being hired: best used to compare several jobs against the same CV.
       </p>
     </div>
   )

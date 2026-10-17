@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { describeFailure } from './errors'
-import { scoreBand } from './scoreBands'
+import { FIT_BANDS, fitPercent, scoreBand } from './scoreBands'
 import { applyTheme, readTheme } from './theme'
 
 afterEach(() => {
@@ -18,6 +18,28 @@ describe('scoreBand', () => {
     [0.5, 'Strong'],
   ])('reads %s as %s', (score, band) => {
     expect(scoreBand(score)).toBe(band)
+  })
+})
+
+describe('fitPercent', () => {
+  it.each([
+    [0.04, 46],
+    [0.055, 59],
+    [0.11, 82],
+  ])('reads %s as %s%%, as evaluate.py calibrate reports', (score, percent) => {
+    expect(Math.round(fitPercent(score) * 100)).toBe(percent)
+  })
+
+  it('only rises, so the ranking of pairs never changes', () => {
+    const scores = [0, 0.001, 0.01, 0.03, 0.05, 0.08, 0.13, 0.5, 1]
+    const fits = scores.map(fitPercent)
+    fits.slice(1).forEach((fit, i) => expect(fit).toBeGreaterThan(fits[i]))
+    expect(fits[0]).toBeGreaterThanOrEqual(0)
+    expect(fits.at(-1)).toBeLessThan(1)
+  })
+
+  it('puts the band thresholds where the raw bands are', () => {
+    expect(FIT_BANDS).toEqual({ moderate: 46, strong: 59 })
   })
 })
 
