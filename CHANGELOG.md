@@ -7,6 +7,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Matches now list the job's skills in two groups: those the CV names (matched) and those it
+  doesn't (missing), with ESCO links where they exist (K9 extractor, loaded once at startup).
 - A rating page for J2 (`scripts/j2-pairs/rate.py`): one pair at a time, keys 1–5, notes, saved to
   the rater's sheet after every rating and resumable; never shows strata, splits or scores.
 - Redesigned match page as a two-pane workspace: inputs on the left, a sticky results report on the
