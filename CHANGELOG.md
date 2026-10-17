@@ -51,6 +51,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - CV text extraction from uploaded PDFs (ADR-0003): pdfplumber with a column split for two-column
   CVs, and clear 422 errors for password-protected or damaged files (`pdf_unreadable`), more than
   10 pages (`pdf_too_many_pages`) and scanned PDFs (`pdf_no_text`). Runs in a worker thread.
+- Draft of Kobi's P1 build note (`docs/posts/p1-build-note-kobi.md`), for review before J3.
 - Evaluation metrics in `app.ml.metrics` (quadratic weighted κ, tie-aware Spearman ρ), tested in CI
   against scikit-learn and SciPy reference values; `scripts/j2-pairs/evaluate.py` uses them.
 - TF-IDF + cosine baseline matcher (`app.ml.tfidf`) and a script that scores every pair of the
