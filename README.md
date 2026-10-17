@@ -13,7 +13,7 @@ See how well a CV fits a job description, and why. CVs are processed in memory a
 **Run match**. The backend sleeps after 15 idle minutes, so the first request can take about a
 minute.
 
-![The match page: job description and CV on the left, the results report on the right](docs/screenshots/after-desktop-light.png)
+![Demo: Use sample data fills in a job description and a fictional CV; Run match shows Strong fit, about 95%, with the skills the CV matches and misses](docs/screenshots/demo.gif)
 
 ## Problem and solution
 
