@@ -18,14 +18,15 @@ Paste a job description, upload a CV as a PDF, press **Match**. Within a few sec
 match score, the skills the CV covers and misses, and the CV sentences that back up the score.
 The CV is processed in memory and never stored.
 
-## Scope (frozen on day 1)
+## Scope (frozen on day 1, confirmed on day 9)
 **In V1** (engineering and ML):
-- One page: JD text box + CV PDF upload → score, skills (matched / missing), evidence.
+- One page: JD text box + CV PDF upload → score and skills (matched / missing). Evidence moved to
+  V1.1 with the embedding matcher (ADR-0004).
 - `POST /api/v1/match` as specified below, with validation, size limit and rate limit.
 - Text-based PDFs only (one or two columns); scanned PDFs rejected with a clear message.
 - Deployed: frontend on GitHub Pages, backend on Render Free (ADR-0002).
-- Matcher: TF-IDF baseline, then sentence embeddings over JD requirements × CV sentences; the
-  better one on the test set ships (ADR-0004).
+- Matcher: TF-IDF baseline, then sentence embeddings over JD requirements × CV sentences, compared
+  on our dev ratings. No embedding beat TF-IDF by the 0.10 we required, so TF-IDF ships (ADR-0004).
 - Skill extraction from both texts with ESCO plus our own tech dictionary; matched / missing lists.
 - Evaluation on our own rated pairs (annotation protocol), reported in the model card with the
   baseline next to it.
@@ -35,7 +36,8 @@ The CV is processed in memory and never stored.
 - Accounts, history or saving results.
 - Matching one CV against many jobs (or the reverse).
 - Languages other than English.
-- Fine-tuning or training our own model (V1 uses pretrained models only).
+- Fine-tuning or training our own model (K10; V1 uses pretrained models only). Confirmed out on
+  2026-10-17: 120 rated pairs are enough to measure a model, not to train one.
 - LLM-generated advice ("rewrite this bullet") and scoring with an LLM.
 - Weighting years of experience, education or location.
 
@@ -220,7 +222,10 @@ which the generated client already understands.
 | 10 (10-18) | Launch: Definition of Done met, deployed, launch posts | Both |
 
 No kickoff posts: we post only at the end of the project (decided together on
-2026-10-17). The kickoff drafts stay in `docs/posts/` as material for the final posts.
+2026-10-17). Each of us writes one end-of-project post that covers what the writing playbook asks of
+the launch post (demo, live link, baseline vs model, what's next) and of the build note (one lesson
+with evidence), followed by the long-form write-up. The kickoff and build-note drafts in
+`docs/posts/` are material for it.
 
 ## Learning goals
 **Semanu (engineering):** validating uploads safely (magic bytes, streaming size limits), designing
