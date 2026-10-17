@@ -105,6 +105,30 @@ def cv_sentences(text: str, limit: int | None = CV_CHUNK_LIMIT) -> list[str]:
     return _chunks(clean_text(text))[:limit]
 
 
+def pick_evidence(
+    requirements: Sequence[Requirement],
+    sentences: Sequence[str],
+    similarity: Matrix,
+    size: int,
+    min_similarity: float = 0.0,
+) -> list[Evidence]:
+    """The strongest requirement-sentence pairs, best first, each CV sentence shown once.
+
+    `similarity` has one row per requirement and one column per CV sentence. Each requirement
+    is paired with its most similar sentence; pairs below `min_similarity` are left out.
+    """
+    best = np.clip(similarity.max(axis=1), 0.0, 1.0)
+    where = similarity.argmax(axis=1)
+    evidence: list[Evidence] = []
+    for i in np.argsort(-best, kind="stable"):
+        if len(evidence) == size or best[i] < min_similarity:
+            break
+        excerpt = sentences[where[i]]
+        if all(e.cv_excerpt != excerpt for e in evidence):
+            evidence.append(Evidence(requirements[i].text, excerpt, round(float(best[i]), 4)))
+    return evidence
+
+
 def _normalize(m: Matrix) -> Matrix:
     m = np.asarray(m, dtype=np.float32)
     norms = np.linalg.norm(m, axis=1, keepdims=True)
@@ -132,14 +156,7 @@ class EmbeddingMatcher:
         cv_vecs = _normalize(self.encoder.encode(sentences))
         similarity = req_vecs @ cv_vecs.T  # cosine, since rows are unit length
         best = np.clip(similarity.max(axis=1), 0.0, 1.0)
-        where = similarity.argmax(axis=1)
         weights = np.array([r.weight for r in requirements])
         score = float(best @ weights / weights.sum())
-        evidence: list[Evidence] = []
-        for i in np.argsort(-best, kind="stable"):
-            excerpt = sentences[where[i]]
-            if len(evidence) == self.evidence_size:
-                break
-            if all(e.cv_excerpt != excerpt for e in evidence):
-                evidence.append(Evidence(requirements[i].text, excerpt, round(float(best[i]), 4)))
+        evidence = pick_evidence(requirements, sentences, similarity, self.evidence_size)
         return MatchResult(round(score, 4), evidence, truncated)
