@@ -78,6 +78,15 @@ document the number of proxies, so find it once after the first deploy:
 
 Use a synthetic `test.pdf`, never a real CV.
 
+**Result on Render (2026-10-15): `TRUSTED_PROXY_HOPS=1` is right.**
+- *Forgery test:* with the laptop's budget used up, 11 requests with made-up `X-Forwarded-For`
+  values all got `429`, so a forged header doesn't buy a fresh budget.
+- *Separate visitors test:* the laptop was kept over the limit by a steady stream of requests
+  (235 refused, about 10 a minute let through as slots freed). Meanwhile a phone on another network
+  ran a match twice and got a result both times, so each visitor has their own budget.
+
+Repeat both tests if Render changes its proxies or the service moves to another host.
+
 ## Rolling back
 
 - **Backend:** in Render, open the service's **Events**, pick the last good deploy and roll back to
