@@ -44,6 +44,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   Spring) and no generic one-word synonyms, for precision. `scripts/skill_eval.py` builds the
   labelling packet for 20 JDs and reports precision, recall and F1 (guide in
   `research/skill_labeling_guide.md`).
+- Demo GIF in the README, recorded from the live site with the sample data
+  (`scripts/demo/record_gif.py`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
