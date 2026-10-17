@@ -11,6 +11,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
   the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
 - `evaluate.py gaps` lists the pairs where a model's rank and our rating disagree most (IDs only),
   for the model card's failure analysis.
+- Test-set results, run once on the served model (`docs/evaluation.md`, model card, README): κ 0.734
+  between us, Spearman ρ 0.553 (95% CI 0.394 to 0.707) for TF-IDF with no embedding model ahead,
+  estimated-fit error 0.75 rating points, 51 of 80 pairs in the right band, skills precision 0.904
+  and F1 0.715, and a failure analysis of the 10 largest gaps.
 - Matches now list the job's skills in two groups: those the CV names (matched) and those it
   doesn't (missing), with ESCO links where they exist (K9 extractor, loaded once at startup).
 - A rating page for J2 (`scripts/j2-pairs/rate.py`): one pair at a time, keys 1–5, notes, saved to
