@@ -1,7 +1,7 @@
 # ADR-0004: Embedding model and matching approach
 
-**Status:** proposed, decided on the dev ratings (2026-10-16); accepted when both deciders approve ·
-**Date:** 2026-10-10, updated 2026-10-16 · **Deciders:** Kobi (ML lead), Semanu (review: memory and
+**Status:** accepted by both deciders on 2026-10-17 (decided on the dev ratings, 2026-10-16) ·
+**Date:** 2026-10-10, updated 2026-10-17 · **Deciders:** Kobi (ML lead), Semanu (review: memory and
 latency)
 
 ## Context
