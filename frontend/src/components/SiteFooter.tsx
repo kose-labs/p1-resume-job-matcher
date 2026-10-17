@@ -1,4 +1,4 @@
-import { FIT_BANDS } from '../lib/scoreBands'
+import { FIT_BANDS, FIT_STEP } from '../lib/scoreBands'
 import { SAMPLE_CV_URL } from '../sample'
 import styles from './SiteFooter.module.css'
 import { REPO_URL } from './TopBar'
@@ -15,13 +15,14 @@ export function SiteFooter() {
             distinctive across 3,000 public job posts (TF-IDF cosine similarity). That raw number is
             small and hard to read, so the page turns it into an estimated fit: how we would likely
             rate the pair from 1 (no fit, 0%) to 5 (strong fit, 100%), learned from 40 CV–job pairs
-            we rated by hand. On those pairs the matcher ranked pairs much as we did (Spearman ρ
-            0.66). It is not a probability of being hired.
+            we rated by hand. On those pairs the matcher's ranking agreed moderately with ours
+            (Spearman ρ 0.66). It is not a probability of being hired.
           </p>
           <p>
-            Bands, fitted to the same ratings: low below {FIT_BANDS.moderate}%, moderate up to{' '}
-            {FIT_BANDS.strong}%, strong from {FIT_BANDS.strong}%. Compare several jobs against the
-            same CV rather than reading one number on its own.
+            The fit is shown to the nearest {FIT_STEP}%. Bands, fitted to the same ratings: low up
+            to {FIT_BANDS.moderate - FIT_STEP}%, moderate {FIT_BANDS.moderate}–
+            {FIT_BANDS.strong - FIT_STEP}%, strong from {FIT_BANDS.strong}%. Compare several jobs
+            against the same CV rather than reading one number on its own.
           </p>
           <p>
             Only text-based PDFs can be read; scanned CVs are rejected. The sample CV is fictional (

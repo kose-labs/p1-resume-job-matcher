@@ -10,8 +10,8 @@ The curve is strictly increasing (b > 0), so pairs keep their order and Spearman
 it changes how the score reads, not how well it ranks. It is fitted on the dev pairs only, and the
 test pairs check how far its estimates land from our ratings.
 
-Plain Python, so `scripts/j2-pairs/evaluate.py` can use it without dependencies; CI checks the fit
-against SciPy's `least_squares`.
+Plain Python, so `scripts/j2-pairs/evaluate.py` can use it without dependencies; tests pin the fit
+to values computed with SciPy's `least_squares`.
 """
 
 import math

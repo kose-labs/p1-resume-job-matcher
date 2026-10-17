@@ -33,7 +33,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   `evaluate.py calibrate`). It lands 0.76 rating points from our ratings on held-out JDs (1.08 for
   guessing the mean) and keeps the ranking, so ρ is unchanged. The band leads ("Strong fit") and the
   fit is rounded to 5% ("≈ 80%"), since its typical error is about ±19 points; the raw similarity
-  stays visible.
+  stays visible. Bands sit on the shown fit (Low ≤ 40%, Moderate 45–55%, Strong ≥ 60%), so the band
+  never contradicts the percentage; 27 of 40 dev pairs land in the right band, as before.
 - Embedding matcher (`app.ml.embeddings`): JD requirements matched to CV sentences by cosine
   similarity, weighted mean of best matches, top pairs as evidence; model comparison in
   `docs/experiments/k8-embeddings.md` and ADR-0004 (proposed).
@@ -128,7 +129,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   which ESCO's capitalised labels had made case-sensitive.
 - "Computer science", "mathematics" and "statistics" next to a degree word ("BSc in Computer
   Science") are no longer listed as skills (extraction 0.3.1): the job asks for a degree there.
-  Test precision 0.897 → 0.904, recall unchanged. The band scale no longer says "provisional".
+  Test precision 0.897 → 0.904, recall unchanged.
+- The band scale no longer says "provisional".
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the

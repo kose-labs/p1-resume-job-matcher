@@ -11,13 +11,22 @@ afterEach(() => {
 describe('scoreBand', () => {
   it.each([
     [0, 'Low'],
-    [0.0399, 'Low'],
-    [0.04, 'Moderate'],
-    [0.0549, 'Moderate'],
-    [0.055, 'Strong'],
+    [0.037, 'Low'],
+    [0.0372, 'Moderate'],
+    [0.0412, 'Moderate'],
+    [0.0529, 'Moderate'],
+    [0.0531, 'Strong'],
     [0.5, 'Strong'],
   ])('reads %s as %s', (score, band) => {
     expect(scoreBand(score)).toBe(band)
+  })
+
+  it('never contradicts the shown fit', () => {
+    for (let score = 0; score <= 0.2; score += 0.0001) {
+      const fit = shownFit(score)
+      const band = fit >= 60 ? 'Strong' : fit >= 45 ? 'Moderate' : 'Low'
+      expect(scoreBand(score)).toBe(band)
+    }
   })
 })
 
@@ -44,8 +53,9 @@ describe('fitPercent', () => {
     expect(shownFit(0)).toBe(0)
   })
 
-  it('puts the band thresholds where the raw bands are', () => {
-    expect(FIT_BANDS).toEqual({ moderate: 46, strong: 59 })
+  it('puts the band thresholds on the 5% grid', () => {
+    expect(FIT_BANDS.moderate % 5).toBe(0)
+    expect(FIT_BANDS.strong % 5).toBe(0)
   })
 })
 

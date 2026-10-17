@@ -1,5 +1,5 @@
 import type { MatchResponse } from '../../api/client'
-import { FIT_BANDS, fitPercent, scoreBand, shownFit } from '../../lib/scoreBands'
+import { FIT_BANDS, FIT_STEP, fitPercent, scoreBand, shownFit } from '../../lib/scoreBands'
 import styles from './Results.module.css'
 
 // Plain names for the models the API reports.
@@ -35,15 +35,17 @@ export function ScoreSummary({ result }: { result: MatchResponse }) {
         className={styles.meter}
         min={0}
         max={100}
-        low={FIT_BANDS.moderate}
-        high={FIT_BANDS.strong}
+        // The exact fit where the rounded one reaches each band.
+        low={FIT_BANDS.moderate - FIT_STEP / 2}
+        high={FIT_BANDS.strong - FIT_STEP / 2}
         optimum={100}
         value={Math.round(fitPercent(result.score) * 100)}
         aria-label={`${band} fit, about ${fit}%`}
       />
       <p className={styles.scale}>
-        Low &lt; {FIT_BANDS.moderate}% · Moderate {FIT_BANDS.moderate}–{FIT_BANDS.strong}% · Strong
-        ≥ {FIT_BANDS.strong}% · raw similarity {result.score.toFixed(3)}
+        Low ≤ {FIT_BANDS.moderate - FIT_STEP}% · Moderate {FIT_BANDS.moderate}–
+        {FIT_BANDS.strong - FIT_STEP}% · Strong ≥ {FIT_BANDS.strong}% · raw similarity{' '}
+        {result.score.toFixed(3)}
       </p>
       <p className={styles.caveat}>
         How we&apos;d likely rate this pair, learned from 40 CV–job pairs we rated by hand. Not a
