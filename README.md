@@ -1,112 +1,209 @@
-# KoSe Labs project template
+# Resume–Job Matcher
 
-Starting point for every KoSe Labs project: a **FastAPI** backend (Python) and a **React + TypeScript** frontend (Vite), with tests, linting, CI, Dependabot and secret scanning already wired up.
+See how well a CV fits a job description, and why. CVs are processed in memory and never stored.
 
-> **Using this template:** click **Use this template → Create a new repository**, then replace this README with `docs/project_plan.md`'s content and the project README template from the [handbook](https://github.com/kose-labs/handbook), and reset `CHANGELOG.md` to an empty `[Unreleased]` section. Keep `LICENSE` and `CONTRIBUTING.md`.
+[![CI](https://github.com/kose-labs/p1-resume-job-matcher/actions/workflows/ci.yml/badge.svg)](https://github.com/kose-labs/p1-resume-job-matcher/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
+![Node 24](https://img.shields.io/badge/node-24%20LTS-blue.svg)
 
-## Quickstart (no Docker needed)
+## Demo
 
-Prerequisites: Python 3.12, [uv](https://docs.astral.sh/uv/), Node 24 LTS (pinned in `frontend/.nvmrc`).
+**Live:** https://kose-labs.github.io/p1-resume-job-matcher/ — click **Use sample data**, then
+**Run match**. The backend sleeps after 15 idle minutes, so the first request can take about a
+minute.
 
-**Backend** (terminal 1):
+![The match page: job description and CV on the left, the results report on the right](docs/screenshots/after-desktop-light.png)
+
+## Problem and solution
+
+Screening CVs against a job description is slow, and keyword filters miss paraphrases while
+rewarding keyword stuffing. Candidates get no explanation either way.
+
+The matcher scores a CV against one job description, shows the score in plain language
+(Low / Moderate / Strong), and lists the skills the CV covers or misses and the CV sentences behind
+the score. We measure it against our own ratings of CV–job pairs, not against a feeling, and we
+publish the numbers and the limits ([model card](docs/model_card.md)).
+
+## Features
+
+- **PDF in, text out, in memory:** text-based PDFs up to 5 MB and 10 pages, including two-column
+  layouts ([ADR-0003](docs/adr/0003-pdf-parser.md)). Scanned, encrypted or broken PDFs get a clear
+  message.
+- **A score you can read:** TF-IDF similarity fitted on 3,000 public job posts
+  ([ADR-0006](docs/adr/0006-production-tfidf.md)), shown as a number with a provisional band and an
+  honest caveat until it's calibrated against our ratings.
+- **Skills and evidence:** skill extraction with ESCO plus a tech dictionary (`app/ml/skills.py`)
+  and sentence-embedding evidence (K8) are built and being evaluated; the page shows them as soon as
+  the API returns them.
+- **Privacy by design:** no database, no files, no CV or job text in logs, uploads never spooled to
+  disk, Uvicorn's IP-recording access log off.
+- **Safe to expose:** size and type checks while the upload arrives, a rate limit of 10 matches a
+  minute per visitor, CPU work in a bounded thread pool so `/health` stays fast
+  ([ADR-0005](docs/adr/0005-serving.md)).
+- **Accessible interface:** light and dark themes, full keyboard support (Ctrl/Cmd + Enter runs a
+  match), Lighthouse accessibility 100.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI["React + Vite + TS<br/>GitHub Pages"] -->|"POST /api/v1/match<br/>cv.pdf + job_description"| MW
+    subgraph Render["Render Free · one container · 512 MB"]
+        MW["Middleware<br/>CORS · request log · rate limit · size limit"] --> EP["FastAPI endpoint"]
+        EP --> TH["Worker thread, max 2 at once<br/>PDF text → match"]
+        TH --> SVC["Match service<br/>loaded once at startup"]
+    end
+    CI["GitHub Actions"] -->|"deploy on main"| UI
+    CI -.->|"checks pass → Render deploys"| Render
+```
+
+The full request path, components, capacity and configuration are in
+[docs/architecture.md](docs/architecture.md). Decisions are recorded as ADRs in
+[docs/adr/](docs/adr/).
+
+## Tech stack
+
+| Part | Tools |
+|---|---|
+| Backend | Python 3.12, FastAPI, pdfplumber, scikit-learn, uv |
+| Frontend | React 19, TypeScript, Vite, CSS Modules with design tokens, IBM Plex (self-hosted) |
+| Contract | OpenAPI → generated TypeScript types; CI fails if they drift |
+| Quality | Ruff, mypy (strict), pytest; oxlint, Prettier, Vitest + Testing Library; pre-commit with gitleaks |
+| Delivery | GitHub Actions (CI, dependency audit, Docker smoke and memory test), Render (backend), GitHub Pages (frontend) |
+
+## Getting started
+
+### Prerequisites
+Python 3.12, [uv](https://docs.astral.sh/uv/), and Node 24 LTS (pinned in `frontend/.nvmrc`).
+No Docker needed.
+
+### Install and run locally
+Backend, in one terminal:
 ```bash
 cd backend
 uv sync
 uv run uvicorn app.main:app --reload
 ```
-API on http://localhost:8000, interactive docs on http://localhost:8000/docs.
-
-**Frontend** (terminal 2):
+Frontend, in another:
 ```bash
 cd frontend
 npm ci
 npm run dev
 ```
-App on http://localhost:5173. It should say **"Server ready."**; the Vite dev server forwards `/api` calls to the backend, so no CORS setup is needed locally.
-`npm ci` installs exactly what `package-lock.json` lists; use `npm install <package>` only when adding a dependency.
+Open http://localhost:5173. The top bar should say **Server ready**; the Vite dev server forwards
+`/api` to the backend, so no CORS setup is needed. API docs: http://localhost:8000/docs.
 
-**Once per clone**, after `uv sync` and `npm ci`, install the git hooks (Ruff, mypy, oxlint, Prettier, secret scanning, file hygiene):
-```bash
-uvx pre-commit install
-```
+Once per clone, install the git hooks: `uvx pre-commit install`.
 
-### Windows notes
-- Run the commands one per line. Windows PowerShell 5.1 doesn't support `&&`.
-- If `npm` fails with *"running scripts is disabled on this system"*, call `npm.cmd` instead (for example `npm.cmd ci`), or allow local scripts for your account once:
-  `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`.
-- If `npm ci` fails with `EPERM … unlink` inside `node_modules`, a program has a file there open, usually the Oxc VS Code extension or a running dev server. Close VS Code or stop the server, then run it again.
+**Windows (PowerShell 5.1):** run the commands one per line (no `&&`). If `npm` says *"running
+scripts is disabled"*, use `npm.cmd`. If `npm ci` fails with `EPERM … unlink`, close VS Code or the
+dev server that has a file in `node_modules` open, then run it again.
 
-## Checks (the same ones CI runs)
+### Environment variables
+Copy `.env.example` to `.env` (never commit `.env`). None are needed locally.
+
+| Variable | Where | Purpose |
+|---|---|---|
+| `CORS_ORIGINS` | backend | Frontend origins allowed to call the deployed API |
+| `MATCH_CONCURRENCY` | backend | Matches that may use the CPU at once (default 2) |
+| `TRUSTED_PROXY_HOPS` | backend | Proxies that append to `X-Forwarded-For`, so the rate limit sees each visitor's IP (`0` locally; see [deployment](docs/deployment.md)) |
+| `VITE_API_URL` | frontend build | The deployed backend URL; empty locally |
+
+### Running tests and checks
+The same checks CI runs:
 
 | | Backend (`cd backend`) | Frontend (`cd frontend`) |
 |---|---|---|
 | Lint | `uv run ruff check .` | `npm run lint` |
 | Format | `uv run ruff format --check .` | `npm run format:check` |
-| Type check | `uv run mypy` | `npm run typecheck` |
-| Tests | `uv run pytest` (includes coverage) | `npm test` |
-| Coverage (80% minimum) | shown by `uv run pytest` | `npm run test:coverage` |
+| Types | `uv run mypy` | `npm run typecheck` |
+| Tests + coverage (80% minimum) | `uv run pytest` | `npm run test:coverage` |
 | Build | — | `npm run build` |
-| Dependency audit (CI) | `pip-audit` on the production lockfile | `npm audit --omit=dev --audit-level=high` |
 
-**After changing the API** (routes or models), regenerate the frontend's types, then commit both
-files. CI fails if either is out of date.
+After changing the API, regenerate the frontend's contract and commit both files:
+`npm run api:schema`, then `npm run api:types` (in `frontend/`).
+
+## Usage
+
+**In the browser:** paste a job description (at least 100 characters), drop a PDF CV or click
+**Use sample data**, then **Run match**.
+
+**From the command line**, with the fictional sample CV (`frontend/public/sample-cv.pdf`):
 ```bash
-cd frontend
-npm run api:schema
-npm run api:types
+curl -F "cv=@frontend/public/sample-cv.pdf" -F "job_description=We need a backend engineer to build REST APIs in Python with FastAPI, PostgreSQL and Docker, deployed with CI/CD." https://p1-resume-job-matcher-api.onrender.com/api/v1/match
 ```
-`api:schema` exports `frontend/openapi.json` from the backend; `api:types` turns it into
-`src/api/schema.d.ts`. The generator runs with its own pinned TypeScript 5, because TypeScript 7
-no longer ships the compiler API it needs.
+On Windows PowerShell, type `curl.exe` instead of `curl`. The response:
+```json
+{
+  "score": 0.465,
+  "skills": { "matched": [], "missing": [] },
+  "evidence": [],
+  "model": { "name": "tfidf-baseline", "version": "0.1.0" },
+  "warnings": ["uncalibrated_score"]
+}
+```
+Errors come back as `{"detail": {"code": "...", "message": "..."}}` with 413 (too large),
+415 (not a PDF), 422 (`pdf_no_text`, `pdf_unreadable`, `pdf_too_many_pages`, or invalid fields) or
+429 (rate limited, with `Retry-After`). The full contract is at `/docs` on the API.
 
-CI (`.github/workflows/ci.yml`) runs these on every pull request, plus:
-- **pre-commit**: the hooks, including the **gitleaks** secret scan. It skips mypy, oxlint and Prettier because the backend and frontend jobs run those.
-- **docker**: builds the backend image and checks that `/health` answers. This is how we test Docker without needing it on our laptops.
+## Evaluation results
+
+Our main metric is Spearman ρ between the score and our own ratings of 120 CV–job pairs
+([annotation protocol](research/annotation_protocol.md)); the test-set numbers go in the
+[model card](docs/model_card.md) once the ratings are complete. So far (day 5 of 10):
+
+| What | Result | Target |
+|---|---|---|
+| Agreement between our two raters (calibration, 20 pairs) | weighted κ **0.785** | ≥ 0.6 |
+| Deployed TF-IDF on the field proxy (900 pairs, AUC same vs unrelated) | **0.819** (K7 baseline 0.789) | reference |
+| Score vs our ratings (ρ) | pending the main rating set | ≥ 0.55, and ≥ 0.10 above TF-IDF |
+| Skill extraction | pending hand labels | F1 ≥ 0.70, precision ≥ 0.80 |
+| Match latency, 2-page CV, warm server | 0.16 s | < 3 s |
+| Peak memory, 4 concurrent 5 MB CVs | 192 MB | < 400 MB |
+
+Experiments: [K7 TF-IDF baseline](docs/experiments/k7-tfidf-baseline.md). Status and plan:
+[mid-project check](docs/mid-project-check.md).
 
 ## Project structure
 
 ```
 backend/
-  app/            FastAPI app (routes, and later the ML package)
-  tests/          pytest
-  Dockerfile      image for CI and hosting
+  app/              FastAPI app: limits, extraction, matching, logging, rate limit
+    ml/             preprocessing, TF-IDF, embeddings, skills, metrics, artefacts
+  scripts/          build the TF-IDF artefact, score the corpus, memory check, OpenAPI export
+  tests/            pytest (synthetic PDFs built in memory)
+  Dockerfile
 frontend/
-  src/            React + TypeScript app
-  .nvmrc          Node version, read by CI
-docs/
-  project_plan.md, adr/, model_card.md, data_card.md
-.github/
-  workflows/ci.yml, dependabot.yml, PR and issue templates
-CHANGELOG.md      notable changes per version
-CONTRIBUTING.md   branches, commits, reviews
-LICENSE           MIT
+  src/              React app: components/, lib/, styles/ (tokens), api/ (generated types)
+  public/           icon and the fictional sample CV
+docs/               plan, ADRs, architecture, deployment, data and model cards, experiments
+research/           annotation protocol, skill labelling guide, shared rating sheets
+scripts/            corpus (K5), pair set and agreement (J2), parser comparison (S6)
+data/               git-ignored: downloaded datasets, corpus, ratings in progress
+render.yaml         Render Blueprint for the backend
 ```
 
-## Configuration
+## Roadmap
 
-Copy `.env.example` to `.env`. Never commit `.env`.
-- `CORS_ORIGINS`: comma-separated frontend URLs allowed to call the deployed API.
-- `MATCH_CONCURRENCY`: how many matches may run at once (default 2, ADR-0005). Extra requests wait
-  their turn, so memory stays bounded on Render Free.
-- `TRUSTED_PROXY_HOPS`: how many proxies in front of the app append to `X-Forwarded-For`, so the
-  rate limit (10 matches a minute) finds each visitor's real IP. `0` locally; set on Render as
-  described in [docs/deployment.md](docs/deployment.md). Don't set Uvicorn's `FORWARDED_ALLOW_IPS=*`:
-  it trusts the left-most entry, which clients can forge.
-- `VITE_API_URL`: the deployed backend URL for the production frontend build. Leave empty locally.
+- **Days 6–10 (to 2026-10-18):** finish the ratings; choose the score model on the dev set
+  (TF-IDF vs embeddings, [ADR-0004](docs/adr/0004-embedding-model.md)); wire skills and evidence
+  into the API; calibrate the score; test-set results and failure analysis in the model card;
+  release `v0.1.0`. Details in the [mid-project check](docs/mid-project-check.md).
+- **Later (V2):** DOCX and scanned CVs (OCR), one CV against many jobs, languages other than
+  English, and an LLM-based scorer measured against the same test set.
 
-## Deployment
+## Contributors and roles
 
-Frontend on GitHub Pages, backend on Render Free, both deployed automatically from `main`.
-One-time setup, configuration, rollback and troubleshooting: [docs/deployment.md](docs/deployment.md).
+- **Kobi Ampem Afriyie** ([@Kobi-Ampem](https://github.com/Kobi-Ampem)): ML lead. Data, evaluation,
+  models.
+- **Semanu Kwaku Sebuava** ([@Ohm-Kel](https://github.com/Ohm-Kel)): engineering lead. API,
+  frontend, security, deployment.
 
-## Optional: Docker
+Every change goes through a pull request reviewed by the other person, with green CI
+([contributing guide](CONTRIBUTING.md)).
 
-If you have Docker: `docker compose up --build` runs the backend on port 8000. Not required for development.
+## License
 
-## Rules that matter
-
-- **No personal data in git.** CVs, datasets and anything in `data/` or `private-data/` are ignored. Only synthetic files go in `backend/tests/fixtures/`.
-- **No secrets in git.** Hooks and GitHub push protection block them; still, check before you commit.
-- **Every change goes through a pull request** with one review from the other person and green CI. See the [working agreement](https://github.com/kose-labs/handbook/blob/main/WORKING_AGREEMENT.md).
-
-Built by [KoSe Labs](https://github.com/kose-labs).
+[MIT](LICENSE) © 2026 KoSe Labs. ESCO data © European Union, reused under Commission Decision
+2011/833/EU. The Djinni datasets are MIT-licensed (Drushchak and Romanyshyn, 2024).
