@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { describeFailure } from './errors'
 import { FIT_BANDS, fitPercent, scoreBand, shownFit } from './scoreBands'
+import { resultSummary } from './summary'
 import { applyTheme, readTheme } from './theme'
 
 afterEach(() => {
@@ -56,6 +57,40 @@ describe('fitPercent', () => {
   it('puts the band thresholds on the 5% grid', () => {
     expect(FIT_BANDS.moderate % 5).toBe(0)
     expect(FIT_BANDS.strong % 5).toBe(0)
+  })
+})
+
+describe('resultSummary', () => {
+  const result = {
+    score: 0.11,
+    skills: { matched: [{ name: 'Python' }, { name: 'Docker' }], missing: [{ name: 'Go' }] },
+    evidence: [],
+    model: { name: 'tfidf-baseline', version: '0.1.0' },
+    warnings: ['uncalibrated_score'],
+  }
+
+  it('sums up an estimated fit and the skills in plain text', () => {
+    expect(resultSummary(result)).toBe(
+      [
+        'Resume–Job Matcher (KoSe Labs)',
+        'Strong fit (estimated fit ≈ 80%, raw similarity 0.110)',
+        'Skills the CV names (2 of 3): Python, Docker',
+        'Missing from the CV: Go',
+        'Model: tfidf-baseline 0.1.0',
+      ].join('\n'),
+    )
+  })
+
+  it('uses a calibrated score as it is, and says none for an empty list', () => {
+    const calibrated = {
+      ...result,
+      score: 0.72,
+      warnings: [],
+      skills: { matched: [], missing: [] },
+    }
+    const text = resultSummary(calibrated)
+    expect(text).toContain('Match score 72%')
+    expect(text).toContain('Skills the CV names (0 of 0): none')
   })
 })
 

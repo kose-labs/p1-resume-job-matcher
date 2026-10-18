@@ -97,7 +97,8 @@ async def record() -> list[tuple[Image.Image, int]]:
         await run.click()
         for _ in range(60):  # loading, until the result appears
             await rec.snap(100)
-            if await page.get_by_text("Estimated fit").count():
+            # Exact, so the empty state's "An estimated fit" doesn't count as a result.
+            if await page.get_by_text("Estimated fit · TF-IDF", exact=True).count():
                 break
         for _ in range(8):  # the meter draws in
             await rec.snap(100)
@@ -108,6 +109,7 @@ async def record() -> list[tuple[Image.Image, int]]:
         await about.click()
         await page.wait_for_timeout(400)
         await page.mouse.wheel(0, 400)
+        await page.mouse.move(1180, 120)  # park the pointer away from the text
         await page.wait_for_timeout(500)
         await rec.snap(4000)  # the explanation
         await browser.close()

@@ -3,6 +3,7 @@ import styles from './App.module.css'
 import { JD_MAX, JD_MIN, MAX_CV_BYTES, matchCv, wakeServer } from './api/client'
 import { AppShell } from './components/AppShell'
 import { CvDropzone } from './components/CvDropzone'
+import { Intro } from './components/Intro'
 import { JobDescriptionInput } from './components/JobDescriptionInput'
 import { MatchResults, type Phase } from './components/MatchResults/MatchResults'
 import { SiteFooter } from './components/SiteFooter'
@@ -40,6 +41,8 @@ export default function App() {
   // Field errors only show once someone tries to run with an incomplete form.
   const [attempted, setAttempted] = useState(false)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
+  // Bumped by Clear to remount the CV picker, which also resets its hidden file input.
+  const [formKey, setFormKey] = useState(0)
 
   // The page starts in 'waking', so the effect only updates state once the server answers.
   const checkServer = () =>
@@ -71,6 +74,18 @@ export default function App() {
     if (file) pickFile(file)
     else setFileError("Couldn't load the sample CV. Choose a PDF of your own instead.")
   }
+
+  const clear = () => {
+    setJobDescription('')
+    pickFile(null)
+    setFormKey((key) => key + 1)
+    setAttempted(false)
+    setPhase({ kind: 'idle' })
+    // Clear disappears once the form is empty: give focus to the first field rather than let it
+    // drop to the top of the page.
+    document.getElementById('jd')?.focus()
+  }
+  const hasInput = jobDescription !== '' || cv !== null || phase.kind !== 'idle'
 
   const run = async () => {
     if (running) return
@@ -106,14 +121,22 @@ export default function App() {
         error={attempted ? jdProblem : null}
       />
       <CvDropzone
+        key={formKey}
         file={cv}
         error={fileError ?? (attempted && cv === null ? 'Choose the CV as a PDF.' : null)}
         onPick={pickFile}
       />
       <div className={styles.actions}>
-        <button type="button" className={controls.textButton} onClick={() => void fillSample()}>
-          Use sample data
-        </button>
+        <div className={styles.secondary}>
+          <button type="button" className={controls.textButton} onClick={() => void fillSample()}>
+            Use sample data
+          </button>
+          {hasInput && (
+            <button type="button" className={controls.textButton} onClick={clear}>
+              Clear
+            </button>
+          )}
+        </div>
         <div className={styles.run}>
           <kbd className={controls.kbd} aria-hidden="true">
             {SHORTCUT}
@@ -146,6 +169,7 @@ export default function App() {
           onThemeChange={setTheme}
         />
       }
+      intro={<Intro />}
       inputs={inputs}
       results={<MatchResults phase={phase} />}
       footer={<SiteFooter />}

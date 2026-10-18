@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { MatchResponse } from '../../api/client'
 import { MatchResults } from './MatchResults'
@@ -18,7 +18,9 @@ afterEach(() => vi.restoreAllMocks())
 describe('results pane states', () => {
   it('explains what will appear before the first match', () => {
     render(<MatchResults phase={{ kind: 'idle' }} />)
-    expect(screen.getByText(/Run a match to see the similarity score/)).toBeInTheDocument()
+    expect(screen.getByText('Your result will appear here')).toBeInTheDocument()
+    expect(screen.getByText('An estimated fit')).toBeInTheDocument()
+    expect(screen.getByText(/never stored/)).toBeInTheDocument()
   })
 
   it('shows a busy skeleton while the match runs', () => {
@@ -60,6 +62,36 @@ describe('results pane states', () => {
     expect(screen.getByText(/only its first part \(about 4 pages\) was searched/)).toBeVisible()
   })
 
+  it('tints the score card by band and says what the band means', () => {
+    const { container } = render(
+      <MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 5 }} />,
+    )
+    expect(container.querySelector('[data-band]')).toHaveAttribute('data-band', 'moderate')
+    expect(screen.getByText('The CV covers part of what this job asks for.')).toBeVisible()
+  })
+
+  it('counts how many of the job skills the CV names, with a tip for the missing ones', () => {
+    render(<MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 5 }} />)
+    expect(screen.getByText(/The CV names/)).toHaveTextContent(
+      "The CV names 1 of the job's 2 skills",
+    )
+    expect(screen.getByText(/Have any of the missing skills\?/)).toBeVisible()
+  })
+
+  it('says a Low fit shares few words and skills, without claiming more', () => {
+    const result = { ...UNCALIBRATED, score: 0.01 }
+    render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
+    expect(
+      screen.getByText("The CV shares few of this job's distinctive words and skills."),
+    ).toBeVisible()
+  })
+
+  it('leaves out the tip when nothing is missing', () => {
+    const result = { ...UNCALIBRATED, skills: { matched: [{ name: 'Go' }], missing: [] } }
+    render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
+    expect(screen.queryByText(/Have any of the missing skills/)).not.toBeInTheDocument()
+  })
+
   it('keeps a very high score below 100%', () => {
     const result = { ...UNCALIBRATED, score: 0.34 }
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
@@ -94,6 +126,42 @@ describe('results pane states', () => {
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
     expect(screen.getByText('None')).toBeInTheDocument()
     expect(screen.getByText('Go')).toBeInTheDocument()
+  })
+})
+
+describe('copying a result', () => {
+  afterEach(() => {
+    // jsdom has no clipboard; each test adds its own.
+    delete (navigator as { clipboard?: unknown }).clipboard
+  })
+
+  function withClipboard(writeText: (text: string) => Promise<void>) {
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+  }
+
+  it('copies a text summary and says so for two seconds', async () => {
+    vi.useFakeTimers()
+    const writeText = vi.fn((_text: string) => Promise.resolve())
+    withClipboard(writeText)
+    render(<MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 5 }} />)
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Copy results' })))
+    expect(writeText.mock.calls[0][0]).toContain('Moderate fit (estimated fit ≈ 45%')
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(2000))
+    expect(screen.getByRole('button', { name: 'Copy results' })).toBeInTheDocument()
+    vi.useRealTimers()
+  })
+
+  it('keeps the button as it was when the browser refuses', async () => {
+    withClipboard(() => Promise.reject(new Error('denied')))
+    render(<MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 5 }} />)
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Copy results' })))
+    expect(screen.getByRole('button', { name: 'Copy results' })).toBeInTheDocument()
+  })
+
+  it('hides the button where there is no clipboard', () => {
+    render(<MatchResults phase={{ kind: 'done', result: UNCALIBRATED, elapsedMs: 5 }} />)
+    expect(screen.queryByRole('button', { name: 'Copy results' })).not.toBeInTheDocument()
   })
 })
 

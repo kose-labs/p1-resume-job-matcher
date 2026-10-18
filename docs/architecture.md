@@ -103,8 +103,9 @@ would hide them and the page could only say "couldn't reach the server".
 | `deploy-frontend.yml` | merge to `main` touching `frontend/` | Builds with `VITE_API_URL` and the repo base path, publishes to Pages |
 | Render (`render.yaml`) | merge to `main` once CI passes | Builds `backend/Dockerfile`, health check `/health` |
 
-`main` is protected: pull request with one approval, all four CI jobs green, branch up to date,
-squash merge only, no force pushes.
+`main` is protected: pull request with one approval (dismissed by a new push), all four CI jobs
+green, squash merge only, no force pushes. Branches don't have to be up to date with `main` before
+merging; we dropped that rule on 2026-10-17 because every merge reset the other open PRs.
 
 ## Configuration
 
@@ -121,13 +122,15 @@ squash merge only, no force pushes.
 |---|---|---|
 | 0001 | Data: Djinni corpus for evaluation; Kaggle PDFs local only | accepted (2026-10-12) |
 | 0002 | Stack and free-tier hosting: GitHub Pages + Render Free | accepted (2026-10-12) |
-| 0003 | PDF text: pdfplumber + column split | proposed (rerun on real CVs) |
-| 0004 | Embedding model: MiniLM candidate, potion fallback, decided on dev ratings | proposed |
-| 0005 | Serving: async endpoint, CPU work in threads, max 2 at once, load once | proposed |
-| 0006 | Production TF-IDF fitted on public job descriptions, committed as a JSON artefact | proposed |
+| 0003 | PDF text: pdfplumber + column split | accepted (2026-10-18), without the real-CV rerun (#98) |
+| 0004 | Embedding model: none beat TF-IDF on our dev ratings, so TF-IDF stays | accepted (2026-10-17) |
+| 0005 | Serving: async endpoint, CPU work in threads, max 2 at once, load once | accepted (2026-10-18) |
+| 0006 | Production TF-IDF fitted on public job descriptions, committed as a JSON artefact | accepted (2026-10-18) |
 
 ## Known limits
 - Text-based PDFs only; scanned CVs are rejected rather than OCR'd (V2).
+- Two-column CVs are split into columns; three columns, tables and text boxes haven't been checked
+  on real CVs (ADR-0003, #98).
 - Per-client rate limiting depends on the right `TRUSTED_PROXY_HOPS` (see `docs/deployment.md`).
 - One instance: a restart resets rate-limit counters; a cold start takes about a minute.
 - Evaluation covers IT jobs from one market (ADR-0001); the model card states the limits.

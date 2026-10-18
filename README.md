@@ -20,10 +20,11 @@ minute.
 Screening CVs against a job description is slow, and keyword filters miss paraphrases while
 rewarding keyword stuffing. Candidates get no explanation either way.
 
-The matcher scores a CV against one job description, shows the score in plain language
-(Low / Moderate / Strong), and lists the skills the CV covers or misses and the CV sentences behind
-the score. We measure it against our own ratings of CV–job pairs, not against a feeling, and we
-publish the numbers and the limits ([model card](docs/model_card.md)).
+The matcher scores a CV against one job description and says it in plain language: a band
+(Low / Moderate / Strong) and an estimated fit from 0 to 100%, learned from CV–job pairs we rated
+by hand. It lists the job's skills that the CV names and the ones it misses. We measure it against
+our own ratings of CV–job pairs, not against a feeling, and we publish the numbers and the limits
+([evaluation](docs/evaluation.md), [model card](docs/model_card.md)).
 
 ## Features
 
@@ -31,12 +32,17 @@ publish the numbers and the limits ([model card](docs/model_card.md)).
   layouts ([ADR-0003](docs/adr/0003-pdf-parser.md)). Scanned, encrypted or broken PDFs get a clear
   message.
 - **A score you can read:** TF-IDF similarity fitted on 3,000 public job posts
-  ([ADR-0006](docs/adr/0006-production-tfidf.md)), shown as a number with a provisional band and an
-  honest caveat until it's calibrated against our ratings.
-- **Skills and evidence:** the job's skills, split into those the CV names and those it doesn't
-  (ESCO plus a tech dictionary, `app/ml/skills.py`), and the CV sentences that back up each
-  requirement: matched by TF-IDF, and only when the two name a skill in common.
-  Embedding models didn't beat TF-IDF on our ratings, so none ships in V1
+  ([ADR-0006](docs/adr/0006-production-tfidf.md)), shown as a band and an estimated fit rounded to
+  5%: how we'd likely rate the pair, from a curve fitted on our dev ratings. On held-out pairs it
+  lands about 0.75 rating points from ours. The raw similarity stays visible, and the page says the
+  fit isn't a probability of being hired.
+- **Skills the job asks for:** split into those the CV names and those it misses, with a coverage
+  line ("The CV names 7 of the job's 12 skills"). ESCO plus a tech dictionary
+  (`app/ml/skills.py`): precision 0.904 and F1 0.715 on held-out job descriptions.
+- **Made for comparing jobs:** Copy results puts a plain-text summary on the clipboard and Clear
+  starts the next job, since the score is most useful across several jobs for one CV.
+- **Evidence:** up to five job requirements, each with the CV sentence that backs it up: matched
+  by TF-IDF, and kept only when the two name a skill in common. No embedding model beat TF-IDF
   ([ADR-0004](docs/adr/0004-embedding-model.md)).
 - **Privacy by design:** no database, no files, no CV or job text in logs, uploads never spooled to
   disk, Uvicorn's IP-recording access log off.
@@ -44,7 +50,8 @@ publish the numbers and the limits ([model card](docs/model_card.md)).
   minute per visitor, CPU work in a bounded thread pool so `/health` stays fast
   ([ADR-0005](docs/adr/0005-serving.md)).
 - **Accessible interface:** light and dark themes, full keyboard support (Ctrl/Cmd + Enter runs a
-  match), Lighthouse accessibility 100.
+  match), Lighthouse accessibility 100 on desktop and mobile, and no axe-core violations (WCAG 2.2
+  AA) in any state or theme.
 
 ## Architecture
 
@@ -159,6 +166,10 @@ On Windows PowerShell, type `curl.exe` instead of `curl`. The response:
   "warnings": ["uncalibrated_score"]
 }
 ```
+`score` is the raw TF-IDF similarity, hence `uncalibrated_score`. The page turns it into the band
+and the estimated fit (`frontend/src/lib/scoreBands.ts`); this short, on-the-nose job description
+reads as Strong fit, ≈ 100%. `evidence` pairs each requirement with the CV sentence that
+backs it up, when both name a skill.
 Errors come back as `{"detail": {"code": "...", "message": "..."}}` with 413 (too large),
 415 (not a PDF), 422 (`pdf_no_text`, `pdf_unreadable`, `pdf_too_many_pages`, or invalid fields) or
 429 (rate limited, with `Retry-After`). The full contract is at `/docs` on the API.
@@ -209,19 +220,21 @@ render.yaml         Render Blueprint for the backend
 
 ## Roadmap
 
-- **Days 6–10 (to 2026-10-18):** finish the ratings; choose the score model on the dev set
-  (TF-IDF vs embeddings, [ADR-0004](docs/adr/0004-embedding-model.md)); wire skills and evidence
-  into the API; calibrate the score; test-set results and failure analysis in the model card;
-  release `v0.1.0`. Details in the [mid-project check](docs/mid-project-check.md).
-- **Later (V2):** DOCX and scanned CVs (OCR), one CV against many jobs, languages other than
-  English, and an LLM-based scorer measured against the same test set.
+- **V1 (2026-10-18):** TF-IDF score shown as an estimated fit with bands, matched and missing
+  skills, test-set results and failure analysis ([evaluation](docs/evaluation.md)), release
+  `v0.2.0`.
+- **Next (V2):** from the failure analysis, a seniority signal, skill coverage in the score,
+  boilerplate removed before scoring, and synonyms for short forms ("DRF", "k8s"), all chosen on
+  dev and checked on a fresh test set; then one CV against many jobs, DOCX and scanned CVs (OCR),
+  languages other than English, and an LLM-based scorer measured the same way.
 
 ## Contributors and roles
 
-- **Kobi Ampem Afriyie** ([@Kobi-Ampem](https://github.com/Kobi-Ampem)): ML lead. Data, evaluation,
-  models.
+- **Kobi Ampem Afriyie** ([@Kobi-Ampem](https://github.com/Kobi-Ampem)): ML lead and frontend lead.
+  Data, rating protocol, evaluation and models; the web app's design and user experience for
+  launch (intro, result card, skills coverage, copy results).
 - **Semanu Kwaku Sebuava** ([@Ohm-Kel](https://github.com/Ohm-Kel)): engineering lead. API,
-  frontend, security, deployment.
+  security, deployment and CI, and the first version of the frontend.
 
 Every change goes through a pull request reviewed by the other person, with green CI
 ([contributing guide](CONTRIBUTING.md)).

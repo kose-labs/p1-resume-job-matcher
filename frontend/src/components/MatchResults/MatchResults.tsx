@@ -45,7 +45,7 @@ export function MatchResults({ phase }: { phase: Phase }) {
               truncated={phase.result.warnings.includes('cv_truncated')}
             />
           )}
-          <ResultMeta model={phase.result.model} elapsedMs={phase.elapsedMs} />
+          <ResultMeta result={phase.result} elapsedMs={phase.elapsedMs} />
         </div>
       )}
     </div>

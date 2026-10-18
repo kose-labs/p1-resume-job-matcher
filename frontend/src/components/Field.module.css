@@ -5,6 +5,12 @@
   gap: var(--space-2);
 }
 
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .label {
   font-weight: var(--weight-medium);
 }
@@ -16,9 +22,13 @@
   font-weight: var(--weight-regular);
 }
 
+/* On a phone the intro and the rest of the form take about 465px, so the box gets what's left of
+   the screen and Run match stays on the first screen. svh is the height with the browser's
+   toolbars showing; browsers without it use the vh line. */
 .textarea {
   width: 100%;
-  height: clamp(220px, 46vh, 520px);
+  height: clamp(140px, calc(100vh - 465px), 360px);
+  height: clamp(140px, calc(100svh - 465px), 360px);
   padding: var(--space-3);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
@@ -38,6 +48,13 @@
 
 .textarea[aria-invalid='true'] {
   border-color: var(--color-danger);
+}
+
+/* Tablets and desktops have room for a taller box. */
+@media (min-width: 640px) {
+  .textarea {
+    height: clamp(220px, 46vh, 520px);
+  }
 }
 
 .meta {

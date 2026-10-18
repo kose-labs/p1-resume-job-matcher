@@ -10,6 +10,19 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Evidence: each result lists up to five job requirements with the CV sentence that backs them
   up, matched by TF-IDF and kept only when the two name a skill in common; a long CV adds a
   `cv_truncated` warning, which the page explains.
+
+## [0.2.0] - 2026-10-18
+
+V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
+evaluation (`docs/evaluation.md`) and model card.
+
+### Added
+- Frontend refresh for launch (Kobi): an intro that says what the page does in one line and three
+  steps, with the privacy promise; numbered form steps and a Clear button; the result as a card
+  tinted by band (green Strong, amber Moderate, plain Low) with what the band means and a meter in
+  its colour; skills coverage ("The CV names 7 of the job's 12 skills") with tinted chips and a tip
+  for the missing ones; Copy results (a plain-text summary); an empty state that shows what a result
+  holds instead of mentioning a "similarity score". No axe violations in any state or theme.
 - `evaluate.py compare` scores every model on the same rated pairs, with each model's gap to
   the deployed TF-IDF and a paired bootstrap CI for that gap, for the ADR-0004 decision.
 - `evaluate.py gaps` lists the pairs where a model's rank and our rating disagree most (IDs only),
@@ -33,6 +46,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
   with reduced motion. Lighthouse accessibility 100, and no axe violations in any state or theme.
 - "Use sample data" fills in a made-up job description and the fictional "Jordan Example" CV, so a
   visitor can try the matcher in seconds without a real CV (`frontend/public/sample-cv.pdf`).
+- Drafts for launch day: Kobi's end-of-project post (`docs/posts/p1-end-of-project-kobi.md`) and
+  the retro (`docs/retro.md`, keep / stop / try, with the plan-vs-actual record filled in).
 - Model card draft (`docs/model_card.md`): intended and out-of-scope use, models, evaluation design,
   proxy and serving numbers, limitations and ethics; rated results to follow on day 8.
 - The score reads as an **estimated fit from 0 to 100%**: how we'd likely rate the pair (rating 1 →
@@ -54,6 +69,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Demo GIF in the README, recorded from the live site with the sample data
   (`scripts/demo/record_gif.py`).
 - Opening the API's address (`/`) redirects to its interactive docs (`/docs`) instead of a 404.
+- Runbook (`docs/runbook.md`): the daily check, releasing, incidents (cold start, CORS, rate limit,
+  memory, wrong results, privacy, abuse), rollback, model changes and maintenance.
 - The API now scores with TF-IDF instead of the stub (S9, ADR-0006). The model is fitted on 3,000
   public Djinni job descriptions only (no CVs, evaluation set excluded) and shipped as a 238 KB
   gzipped-JSON artefact that `scripts/build_tfidf_artifact.py` rebuilds byte for byte. Scores are
@@ -108,6 +125,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   embedding beats it by the 0.10 we required, so none ships in V1.
 - ADR-0004 accepted by both of us on 2026-10-17. We drop the kickoff posts and post once, at the
   end of the project.
+- ADR-0003 (PDF extraction), ADR-0005 (serving) and ADR-0006 (production TF-IDF) accepted by both of
+  us on 2026-10-18. ADR-0003 without its planned rerun on real CVs: unchecked layouts are tracked in
+  #98. `docs/architecture.md` now shows every ADR's status and the current branch rules.
 - Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
   seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
@@ -127,8 +147,15 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Verified on Render that `TRUSTED_PROXY_HOPS=1` gives each visitor their own rate-limit budget and
   ignores forged `X-Forwarded-For` values; recorded in `docs/deployment.md` and `render.yaml`.
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
+- The README describes V1 as shipped: the estimated fit and bands, matched and missing skills with
+  coverage, Copy results and Clear, and evidence in V1.1. The usage example shows a real response
+  with skills, and Lighthouse accessibility was measured again on the launch design (100 on desktop
+  and mobile).
 
 ### Fixed
+- Clear keeps keyboard focus on the page: it moves to the job description instead of dropping to
+  the top. The Low verdict now says what the score measures ("The CV shares few of this job's
+  distinctive words and skills") instead of "little in common".
 - Embedding matcher: a CV longer than 150 chunks (about 4 pages) is no longer cut silently. The
   result now says so (`cv_truncated`), ready for an API warning. Evidence shows each CV sentence once.
 - Skill extraction (0.2.0) is more precise: a capitalised word at the start of a sentence ("Access
@@ -144,6 +171,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - The band scale no longer says "provisional".
 - The result page no longer shows "None found" and "None" for skills when none were recognised in
   the job description (as now, before skill extraction lands); it says so in one line instead.
+- On a phone, the job description box now leaves room for the rest of the form, so the CV picker
+  and Run match are on the first screen (375×667: Run match ended 19px below the screen, now 21px
+  above it). Tablets and desktops keep the taller box.
 - Render deploy: the Dockerfile path and build context in `render.yaml` are now relative to the
   service's root directory (`backend/`), where Render resolves them. The first deploy failed looking
   for `backend/backend`.

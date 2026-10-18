@@ -2,6 +2,7 @@ import { useRef, useState, type DragEvent } from 'react'
 import controls from '../styles/controls.module.css'
 import field from './Field.module.css'
 import styles from './CvDropzone.module.css'
+import { StepNumber } from './StepNumber'
 
 type Props = {
   file: File | null
@@ -35,9 +36,12 @@ export function CvDropzone({ file, error, onPick }: Props) {
 
   return (
     <div className={field.field}>
-      <label htmlFor="cv" className={field.label}>
-        CV <span className={field.labelHint}>PDF, up to 5 MB</span>
-      </label>
+      <div className={field.labelRow}>
+        <StepNumber n={2} />
+        <label htmlFor="cv" className={field.label}>
+          CV <span className={field.labelHint}>PDF, up to 5 MB</span>
+        </label>
+      </div>
       {/* Reached through the Choose / Replace buttons, so it stays out of the tab order. */}
       <input
         ref={input}
@@ -76,6 +80,15 @@ export function CvDropzone({ file, error, onPick }: Props) {
           </>
         ) : (
           <>
+            <svg
+              className={styles.icon}
+              viewBox="0 0 16 16"
+              width="16"
+              height="16"
+              aria-hidden="true"
+            >
+              <path d="M8 10.5V2.5M5 5.5l3-3 3 3M2.5 10v2.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V10" />
+            </svg>
             <span className={styles.prompt}>Drop a PDF here, or</span>
             <button type="button" className={controls.textButton} onClick={choose}>
               choose a file
