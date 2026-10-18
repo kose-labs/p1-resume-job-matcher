@@ -137,6 +137,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Verified on Render that `TRUSTED_PROXY_HOPS=1` gives each visitor their own rate-limit budget and
   ignores forged `X-Forwarded-For` values; recorded in `docs/deployment.md` and `render.yaml`.
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
+- The README describes V1 as shipped: the estimated fit and bands, matched and missing skills with
+  coverage, Copy results and Clear, and evidence in V1.1. The usage example shows a real response
+  with skills, and Lighthouse accessibility was measured again on the launch design (100 on desktop
+  and mobile).
 
 ### Fixed
 - Clear keeps keyboard focus on the page: it moves to the job description instead of dropping to
