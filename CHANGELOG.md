@@ -115,6 +115,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
   embedding beats it by the 0.10 we required, so none ships in V1.
 - ADR-0004 accepted by both of us on 2026-10-17. We drop the kickoff posts and post once, at the
   end of the project.
+- ADR-0003 (PDF extraction), ADR-0005 (serving) and ADR-0006 (production TF-IDF) accepted by both of
+  us on 2026-10-18. ADR-0003 without its planned rerun on real CVs: unchecked layouts are tracked in
+  #98. `docs/architecture.md` now shows every ADR's status and the current branch rules.
 - Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
   seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
