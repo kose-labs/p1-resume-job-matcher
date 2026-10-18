@@ -91,3 +91,46 @@ def test_a_skill_the_cv_does_not_name_is_missing(service: TfidfMatchService) -> 
 def test_no_skills_in_the_job_gives_empty_lists(service: TfidfMatchService) -> None:
     skills = service.match(CV, "A friendly team, flexible hours and a nice office.").skills
     assert skills.matched == [] and skills.missing == []
+
+
+EVIDENCE_CV = (
+    "Backend developer.\n"
+    "- Built FastAPI services in Python with PostgreSQL and Docker.\n"
+    "- The most important thing for me is practical experience and learning.\n"
+)
+EVIDENCE_JD = (
+    "Requirements:\n"
+    "- 3+ years building REST APIs in Python with FastAPI\n"
+    "- Practical experience in manual testing of web applications\n"
+)
+
+
+def test_evidence_pairs_a_requirement_with_the_cv_sentence_naming_its_skills(
+    service: TfidfMatchService,
+) -> None:
+    evidence = service.match(EVIDENCE_CV, EVIDENCE_JD).evidence
+    assert [(e.requirement, e.cv_excerpt) for e in evidence] == [
+        (
+            "3+ years building REST APIs in Python with FastAPI",
+            "Built FastAPI services in Python with PostgreSQL and Docker.",
+        )
+    ]
+    assert 0 < evidence[0].similarity <= 1
+
+
+def test_shared_generic_words_are_not_evidence(service: TfidfMatchService) -> None:
+    # "practical experience" overlaps, but the sentence names no skill the requirement asks for.
+    evidence, _ = service.evidence(EVIDENCE_CV, EVIDENCE_JD)
+    assert all("manual testing" not in e.requirement for e in evidence)
+
+
+def test_no_requirements_or_sentences_means_no_evidence(service: TfidfMatchService) -> None:
+    assert service.evidence(EVIDENCE_CV, "Hi") == ([], False)
+    assert service.evidence("", EVIDENCE_JD) == ([], False)
+
+
+def test_a_long_cv_is_flagged(service: TfidfMatchService) -> None:
+    long_cv = "\n".join(f"- Built service number {i} in Python for clients" for i in range(200))
+    result = service.match(long_cv, EVIDENCE_JD)
+    assert result.warnings == ["uncalibrated_score", "cv_truncated"]
+    assert result.evidence  # still matched, on the first part of the CV

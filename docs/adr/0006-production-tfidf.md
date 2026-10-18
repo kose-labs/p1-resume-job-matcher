@@ -49,6 +49,9 @@ Constraints:
   be read as a percentage until they're calibrated against our ratings (J2, Kobi's decision).
 
 ## Consequences
+- **Also the evidence (2026-10-17).** ADR-0004 ships no embedding model, so the same matcher pairs
+  each job requirement with its most similar CV sentence (K8's chunking). A pair counts only if the
+  two name a skill in common, because TF-IDF alone also pairs sentences that share generic words.
 - Rebuilding is one command from `backend/` (the first run downloads 139 MB into git-ignored
   `data/raw/`):
   ```

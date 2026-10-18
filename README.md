@@ -40,8 +40,9 @@ our own ratings of CV–job pairs, not against a feeling, and we publish the num
   line ("The CV names 7 of the job's 12 skills"). ESCO plus a tech dictionary
   (`app/ml/skills.py`): precision 0.904 and F1 0.715 on held-out job descriptions.
 - **Made for comparing jobs:** Copy results puts a plain-text summary on the clipboard and Clear
-  starts the next job, since the score is most useful across several jobs for one CV. CV sentences
-  as evidence come in V1.1: no embedding model beat TF-IDF
+  starts the next job, since the score is most useful across several jobs for one CV.
+- **Evidence:** up to five job requirements, each with the CV sentence that backs it up: matched
+  by TF-IDF, and kept only when the two name a skill in common. No embedding model beat TF-IDF
   ([ADR-0004](docs/adr/0004-embedding-model.md)).
 - **Privacy by design:** no database, no files, no CV or job text in logs, uploads never spooled to
   disk, Uvicorn's IP-recording access log off.
@@ -154,14 +155,21 @@ On Windows PowerShell, type `curl.exe` instead of `curl`. The response:
     ],
     "missing": [{ "name": "REST API", "esco_uri": null }, { "name": "CI/CD", "esco_uri": null }]
   },
-  "evidence": [],
+  "evidence": [
+    {
+      "requirement": "We need a backend engineer to build REST APIs in Python with FastAPI, PostgreSQL and Docker, deployed with CI/CD.",
+      "cv_excerpt": "Built FastAPI services in Python with PostgreSQL and Docker.",
+      "similarity": 0.5267
+    }
+  ],
   "model": { "name": "tfidf-baseline", "version": "0.1.0" },
   "warnings": ["uncalibrated_score"]
 }
 ```
 `score` is the raw TF-IDF similarity, hence `uncalibrated_score`. The page turns it into the band
 and the estimated fit (`frontend/src/lib/scoreBands.ts`); this short, on-the-nose job description
-reads as Strong fit, ≈ 100%. `evidence` stays empty until V1.1.
+reads as Strong fit, ≈ 100%. `evidence` pairs each requirement with the CV sentence that
+backs it up, when both name a skill.
 Errors come back as `{"detail": {"code": "...", "message": "..."}}` with 413 (too large),
 415 (not a PDF), 422 (`pdf_no_text`, `pdf_unreadable`, `pdf_too_many_pages`, or invalid fields) or
 429 (rate limited, with `Retry-After`). The full contract is at `/docs` on the API.

@@ -6,6 +6,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Evidence: each result lists up to five job requirements with the CV sentence that backs them
+  up, matched by TF-IDF and kept only when the two name a skill in common; a long CV adds a
+  `cv_truncated` warning, which the page explains.
+
 ## [0.2.0] - 2026-10-18
 
 V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
