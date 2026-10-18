@@ -1,39 +1,50 @@
 # Architecture: P1 Resume–Job Matcher
 
-**Status:** 2026-10-13, describes `main` plus the workspace UI (#56). Owner: Semanu (eng lead).
-Decisions live in `docs/adr/`.
+**Status:** 2026-10-18, describes `v0.2.0` (the V1 launch). Owner: Semanu (eng lead). Decisions
+live in `docs/adr/`.
 
 ## In one paragraph
 A static React site on **GitHub Pages** sends a CV (PDF) and a job description to a **FastAPI**
 service in one Docker container on **Render Free** (0.1 CPU, 512 MB). The service checks the upload,
-reads the PDF's text in memory, scores it against the job description and returns a score with
-its band, the matched and missing skills, and the CV sentences behind the score (skills and evidence
-are built and being evaluated, see the components below). Nothing is stored: no database, no files,
-no CV text in logs. Everything is built, tested and deployed from GitHub on every merge to `main`.
+reads the PDF's text in memory, scores it with TF-IDF and splits the job's skills into matched and
+missing. The browser turns the raw score into a band and an estimated fit. CV sentences as evidence
+come in V1.1 (#78). Nothing is stored: no database, no files, no CV text in logs. Everything is
+built, tested and deployed from GitHub on every merge to `main`.
 
 ## System diagram
 
 ```mermaid
-flowchart LR
-    subgraph Browser
-        UI[React + Vite + TS<br/>typed client from openapi.json]
+flowchart TB
+    subgraph GH["GitHub"]
+        CI["Actions<br/>CI on every PR<br/>deploy-frontend on main"]
+        Pages["GitHub Pages<br/>static site"]
     end
-    subgraph GH[GitHub]
-        Pages[GitHub Pages<br/>static site]
-        CI[Actions: CI on every PR<br/>deploy-frontend on main]
+    subgraph Browser["Browser"]
+        UI["React + Vite + TS<br/>typed client from openapi.json"]
+        FIT["Band + estimated fit<br/>FIT_CURVE in scoreBands.ts"]
     end
-    subgraph Render[Render Free · 1 container · 512 MB]
-        direction TB
-        MW[Middleware<br/>CORS → request log → rate limit → size limit]
-        EP[POST /api/v1/match<br/>async endpoint]
-        TH[Worker thread · max 2 at once<br/>extract text → match]
-        SVC[Match service<br/>loaded once at startup]
-        MW --> EP --> TH --> SVC
+    subgraph Render["Render Free · 512 MB"]
+        MW["Middleware<br/>CORS → request log →<br/>rate limit → size limit"]
+        EP["POST /api/v1/match<br/>async endpoint"]
+        subgraph TH["Worker thread, max 2"]
+            PDF["Extract text in memory<br/>pdfplumber + column split"]
+            TF["TF-IDF similarity<br/>artefact loaded at startup"]
+            SK["Skills matched / missing<br/>ESCO + tech dictionary"]
+        end
+        RES["MatchResponse JSON<br/>raw score + skills"]
     end
-    UI -->|loads| Pages
-    UI -->|multipart: cv.pdf + job_description<br/>VITE_API_URL| MW
     CI -->|publishes| Pages
-    CI -.->|checks pass → Render deploys main| Render
+    CI -.->|"checks pass → Render deploys main"| Render
+    Pages -->|serves| UI
+    UI -->|"multipart: cv.pdf + job_description<br/>to VITE_API_URL"| MW --> EP --> PDF
+    PDF --> TF & SK
+    TF & SK --> RES
+    RES --> FIT
+    %% Group boxes without a fill, so no theme colour shows behind them, light or dark.
+    style GH fill:none,stroke:#8b949e
+    style Browser fill:none,stroke:#8b949e
+    style Render fill:none,stroke:#8b949e
+    style TH fill:none,stroke:#8b949e,stroke-dasharray:4 3
 ```
 
 ## A match request, step by step

@@ -6,6 +6,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- The architecture diagrams in the README and `docs/architecture.md` read top to bottom, so GitHub
+  shows their text at about 14 px instead of 8 px in one long row. They now show the TF-IDF scorer,
+  the skill extractor, the response, and the estimated fit computed in the browser, and the group
+  boxes have no fill in either theme. The architecture page's summary describes V1 as shipped.
+
 ## [0.2.0] - 2026-10-18
 
 V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
