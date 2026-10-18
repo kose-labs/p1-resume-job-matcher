@@ -136,6 +136,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
 
 ### Fixed
+- Clear keeps keyboard focus on the page: it moves to the job description instead of dropping to
+  the top. The Low verdict now says what the score measures ("The CV shares few of this job's
+  distinctive words and skills") instead of "little in common".
 - Embedding matcher: a CV longer than 150 chunks (about 4 pages) is no longer cut silently. The
   result now says so (`cv_truncated`), ready for an API warning. Evidence shows each CV sentence once.
 - Skill extraction (0.2.0) is more precise: a capitalised word at the start of a sentence ("Access
