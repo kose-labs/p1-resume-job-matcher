@@ -20,10 +20,11 @@ minute.
 Screening CVs against a job description is slow, and keyword filters miss paraphrases while
 rewarding keyword stuffing. Candidates get no explanation either way.
 
-The matcher scores a CV against one job description, shows the score in plain language
-(Low / Moderate / Strong), and lists the skills the CV covers or misses and the CV sentences behind
-the score. We measure it against our own ratings of CV–job pairs, not against a feeling, and we
-publish the numbers and the limits ([model card](docs/model_card.md)).
+The matcher scores a CV against one job description and says it in plain language: a band
+(Low / Moderate / Strong) and an estimated fit from 0 to 100%, learned from CV–job pairs we rated
+by hand. It lists the job's skills that the CV names and the ones it misses. We measure it against
+our own ratings of CV–job pairs, not against a feeling, and we publish the numbers and the limits
+([evaluation](docs/evaluation.md), [model card](docs/model_card.md)).
 
 ## Features
 
@@ -31,18 +32,25 @@ publish the numbers and the limits ([model card](docs/model_card.md)).
   layouts ([ADR-0003](docs/adr/0003-pdf-parser.md)). Scanned, encrypted or broken PDFs get a clear
   message.
 - **A score you can read:** TF-IDF similarity fitted on 3,000 public job posts
-  ([ADR-0006](docs/adr/0006-production-tfidf.md)), shown as a number with a provisional band and an
-  honest caveat until it's calibrated against our ratings.
-- **Skills and evidence:** skill extraction with ESCO plus a tech dictionary (`app/ml/skills.py`)
-  and sentence-embedding evidence (K8) are built and being evaluated; the page shows them as soon as
-  the API returns them.
+  ([ADR-0006](docs/adr/0006-production-tfidf.md)), shown as a band and an estimated fit rounded to
+  5%: how we'd likely rate the pair, from a curve fitted on our dev ratings. On held-out pairs it
+  lands about 0.75 rating points from ours. The raw similarity stays visible, and the page says the
+  fit isn't a probability of being hired.
+- **Skills the job asks for:** split into those the CV names and those it misses, with a coverage
+  line ("The CV names 7 of the job's 12 skills"). ESCO plus a tech dictionary
+  (`app/ml/skills.py`): precision 0.904 and F1 0.715 on held-out job descriptions.
+- **Made for comparing jobs:** Copy results puts a plain-text summary on the clipboard and Clear
+  starts the next job, since the score is most useful across several jobs for one CV. CV sentences
+  as evidence come in V1.1: no embedding model beat TF-IDF
+  ([ADR-0004](docs/adr/0004-embedding-model.md)).
 - **Privacy by design:** no database, no files, no CV or job text in logs, uploads never spooled to
   disk, Uvicorn's IP-recording access log off.
 - **Safe to expose:** size and type checks while the upload arrives, a rate limit of 10 matches a
   minute per visitor, CPU work in a bounded thread pool so `/health` stays fast
   ([ADR-0005](docs/adr/0005-serving.md)).
 - **Accessible interface:** light and dark themes, full keyboard support (Ctrl/Cmd + Enter runs a
-  match), Lighthouse accessibility 100.
+  match), Lighthouse accessibility 100 on desktop and mobile, and no axe-core violations (WCAG 2.2
+  AA) in any state or theme.
 
 ## Architecture
 
@@ -137,12 +145,23 @@ On Windows PowerShell, type `curl.exe` instead of `curl`. The response:
 ```json
 {
   "score": 0.465,
-  "skills": { "matched": [], "missing": [] },
+  "skills": {
+    "matched": [
+      { "name": "Python", "esco_uri": "http://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d" },
+      { "name": "FastAPI", "esco_uri": null },
+      { "name": "PostgreSQL", "esco_uri": "http://data.europa.eu/esco/skill/a8d07b5a-c1a1-42c6-9d53-db9c7a2ca996" },
+      { "name": "Docker", "esco_uri": null }
+    ],
+    "missing": [{ "name": "REST API", "esco_uri": null }, { "name": "CI/CD", "esco_uri": null }]
+  },
   "evidence": [],
   "model": { "name": "tfidf-baseline", "version": "0.1.0" },
   "warnings": ["uncalibrated_score"]
 }
 ```
+`score` is the raw TF-IDF similarity, hence `uncalibrated_score`. The page turns it into the band
+and the estimated fit (`frontend/src/lib/scoreBands.ts`); this short, on-the-nose job description
+reads as Strong fit, ≈ 100%. `evidence` stays empty until V1.1.
 Errors come back as `{"detail": {"code": "...", "message": "..."}}` with 413 (too large),
 415 (not a PDF), 422 (`pdf_no_text`, `pdf_unreadable`, `pdf_too_many_pages`, or invalid fields) or
 429 (rate limited, with `Retry-After`). The full contract is at `/docs` on the API.
