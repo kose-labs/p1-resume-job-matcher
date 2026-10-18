@@ -67,6 +67,14 @@ describe('results pane states', () => {
     expect(screen.getByText(/Have any of the missing skills\?/)).toBeVisible()
   })
 
+  it('says a Low fit shares few words and skills, without claiming more', () => {
+    const result = { ...UNCALIBRATED, score: 0.01 }
+    render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)
+    expect(
+      screen.getByText("The CV shares few of this job's distinctive words and skills."),
+    ).toBeVisible()
+  })
+
   it('leaves out the tip when nothing is missing', () => {
     const result = { ...UNCALIBRATED, skills: { matched: [{ name: 'Go' }], missing: [] } }
     render(<MatchResults phase={{ kind: 'done', result, elapsedMs: 5 }} />)

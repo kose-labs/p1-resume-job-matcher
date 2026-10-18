@@ -81,6 +81,9 @@ export default function App() {
     setFormKey((key) => key + 1)
     setAttempted(false)
     setPhase({ kind: 'idle' })
+    // Clear disappears once the form is empty: give focus to the first field rather than let it
+    // drop to the top of the page.
+    document.getElementById('jd')?.focus()
   }
   const hasInput = jobDescription !== '' || cv !== null || phase.kind !== 'idle'
 
