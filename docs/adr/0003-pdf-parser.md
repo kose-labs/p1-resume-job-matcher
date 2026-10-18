@@ -1,7 +1,7 @@
 # ADR-0003: PDF text extraction
 
-**Status:** proposed: confirm on 10 real CVs (S6) before accepting · **Date:** 2026-10-09 ·
-**Deciders:** Semanu (eng lead), Kobi (review)
+**Status:** accepted by both deciders on 2026-10-18, without the planned rerun on real CVs (see
+Consequences) · **Date:** 2026-10-09 · **Deciders:** Semanu (eng lead), Kobi (review)
 
 ## Context
 `POST /api/v1/match` receives the CV as a PDF and needs its text in reading order. CVs often use two
@@ -45,7 +45,7 @@ What the numbers show:
 3. **pypdf**: BSD, fast. Cons: no convenient word positions, so the column split would be much more
    work; interleaves row-ordered columns.
 
-## Decision (proposed)
+## Decision
 Use **pdfplumber with our column split**, wrapped in one function the API calls:
 - Check the first bytes are `%PDF-` (else 415), the size is ≤ 5 MB (else 413) and pages ≤ 10.
 - Encrypted or corrupted PDF → 422 `pdf_unreadable`.
@@ -63,9 +63,11 @@ Use **pdfplumber with our column split**, wrapped in one function the API calls:
   (`test_column_split_ignores_empty_space_after_short_lines`). The S6 numbers above are unaffected:
   those fixtures had long lines in both columns.
 - Preprocessing (K6) must remove `(cid:N)` placeholders.
-- Before accepting: rerun on 10 real CVs (Kobi's corpus, K5), including real two-column layouts, and
-  read the extracted text by eye. If real layouts break the split (three columns, tables, text in
-  boxes), revisit here.
+- **Accepted without the real-CV rerun (2026-10-18).** We planned to rerun on 10 real CVs, including
+  real two-column layouts, before accepting. That didn't happen: the evaluation corpus (K5) is plain
+  text, not PDFs, and we don't handle real CVs. The decision rests on the S6 synthetic fixtures and
+  the backend tests. Layouts we haven't checked (three columns, tables, text in boxes) are a known
+  risk, tracked in #98; if they break the split, revisit here.
 
 ## Sources
 - [pdfplumber](https://github.com/jsvine/pdfplumber) · [pypdf](https://github.com/py-pdf/pypdf) ·
