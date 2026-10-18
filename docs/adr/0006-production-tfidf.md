@@ -1,6 +1,7 @@
 # ADR-0006: Production TF-IDF fitted on public job descriptions, committed as a JSON artefact
 
-**Status:** proposed · **Date:** 2026-10-12 · **Deciders:** Semanu (eng lead), Kobi (ML lead, review)
+**Status:** accepted by both deciders on 2026-10-18 · **Date:** 2026-10-12 · **Deciders:** Semanu
+(eng lead), Kobi (ML lead, review)
 
 ## Context
 The deployed API needs a real matcher (S9). TF-IDF (K7, `app/ml/tfidf.py`) is the baseline, and
@@ -27,7 +28,7 @@ Constraints:
    a public repository.
 5. **Commit a JSON artefact built by a pinned, reproducible script** (chosen).
 
-## Decision (proposed)
+## Decision
 - **Corpus:** 3,000 English Djinni job descriptions of 600–5,000 characters
   (`lang-uk/recruitment-dataset-job-descriptions-english`, revision `b56a6054`, SHA-256 checked,
   MIT), picked by a seeded hash order (`kose-p1-tfidf`), with the 30 evaluation job descriptions
@@ -61,8 +62,11 @@ Constraints:
   `frontend/src/lib/scoreBands.ts`.
 - The K7 numbers came from a vectorizer fitted on the evaluation corpus itself. The production fit
   differs, so the evaluation should be rerun with this artefact before quoting numbers for the
-  deployed model (follow-up for K7/J2).
+  deployed model (follow-up for K7/J2). Done: `docs/evaluation.md` reports this artefact.
 - The vocabulary comes from IT jobs on one job board: CVs and jobs outside IT share fewer known
   terms and score lower. The model card states this.
 - Skills and evidence stay empty until K9 (skills) and K8 (embeddings) land; if the embedding model
   (ADR-0004) is adopted, it loads in `load_match_service()` next to or instead of TF-IDF.
+  (Skills shipped in #65; ADR-0004 kept TF-IDF, and evidence moved to V1.1 in #79.)
+- **Since 2026-10-17** the page turns the raw score into an estimated fit, from a curve fitted on our
+  dev ratings (#80). The API still returns the raw score with `uncalibrated_score`.

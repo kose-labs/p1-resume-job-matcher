@@ -1,6 +1,7 @@
 # ADR-0005: Serving the model: async endpoint, CPU work in limited worker threads
 
-**Status:** proposed · **Date:** 2026-10-11 · **Deciders:** Semanu (eng lead), Kobi (review)
+**Status:** accepted by both deciders on 2026-10-18 · **Date:** 2026-10-11 · **Deciders:** Semanu
+(eng lead), Kobi (review)
 
 ## Context
 A match is CPU-bound: reading the PDF (pdfplumber, ADR-0003) and scoring it (TF-IDF now,
@@ -31,7 +32,7 @@ FastAPI offers two kinds of endpoint, and both defaults are wrong here:
    copy of the model, multiplying memory, and 0.1 CPU gains nothing from parallel processes.
    Rejected for Render Free.
 
-## Decision (proposed)
+## Decision
 - **Load once at startup:** FastAPI's lifespan builds the match service (`load_match_service()`)
   before the server accepts requests and stores it on `app.state`; the endpoint gets it through
   `Depends(get_match_service)`, which tests replace with fakes via `dependency_overrides`.
@@ -47,3 +48,4 @@ FastAPI offers two kinds of endpoint, and both defaults are wrong here:
   passes 400 MB (`backend/scripts/memory_check.py`).
 - If the embedding model (ADR-0004) is adopted, it loads in `load_match_service()`, and the memory
   check decides whether two concurrent matches still fit or `MATCH_CONCURRENCY` drops to 1.
+  (ADR-0004 kept TF-IDF, so V1 didn't need this.)

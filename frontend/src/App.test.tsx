@@ -284,6 +284,8 @@ describe('page intro and clearing', () => {
     expect(screen.queryByText('cv.pdf')).not.toBeInTheDocument()
     expect(screen.getByText('Your result will appear here')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+    // Focus moves to the job description, not back to the top of the page.
+    expect(screen.getByLabelText('Job description')).toHaveFocus()
   })
 })
 

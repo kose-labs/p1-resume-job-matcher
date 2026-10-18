@@ -120,6 +120,9 @@ evaluation (`docs/evaluation.md`) and model card.
   embedding beats it by the 0.10 we required, so none ships in V1.
 - ADR-0004 accepted by both of us on 2026-10-17. We drop the kickoff posts and post once, at the
   end of the project.
+- ADR-0003 (PDF extraction), ADR-0005 (serving) and ADR-0006 (production TF-IDF) accepted by both of
+  us on 2026-10-18. ADR-0003 without its planned rerun on real CVs: unchecked layouts are tracked in
+  #98. `docs/architecture.md` now shows every ADR's status and the current branch rules.
 - Annotation protocol v2 (proposed for the J3 call): five rules from the calibration batch on
   seniority, overqualification, unwritten must-haves, CVs without technologies, and layout or English.
 - An uncalibrated score is shown as a raw similarity with its provisional band ("0.043 Moderate"),
@@ -139,8 +142,15 @@ evaluation (`docs/evaluation.md`) and model card.
 - Verified on Render that `TRUSTED_PROXY_HOPS=1` gives each visitor their own rate-limit budget and
   ignores forged `X-Forwarded-For` values; recorded in `docs/deployment.md` and `render.yaml`.
 - Node is pinned to 24 LTS in `frontend/.nvmrc`; CI reads it from there. Dependabot no longer proposes major `@types/node` updates, which must match the Node version.
+- The README describes V1 as shipped: the estimated fit and bands, matched and missing skills with
+  coverage, Copy results and Clear, and evidence in V1.1. The usage example shows a real response
+  with skills, and Lighthouse accessibility was measured again on the launch design (100 on desktop
+  and mobile).
 
 ### Fixed
+- Clear keeps keyboard focus on the page: it moves to the job description instead of dropping to
+  the top. The Low verdict now says what the score measures ("The CV shares few of this job's
+  distinctive words and skills") instead of "little in common".
 - Embedding matcher: a CV longer than 150 chunks (about 4 pages) is no longer cut silently. The
   result now says so (`cv_truncated`), ready for an API warning. Evidence shows each CV sentence once.
 - Skill extraction (0.2.0) is more precise: a capitalised word at the start of a sentence ("Access

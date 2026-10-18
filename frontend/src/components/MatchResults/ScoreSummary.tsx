@@ -16,7 +16,7 @@ const METHODS: Record<string, string> = { 'tfidf-baseline': 'TF-IDF' }
 const VERDICTS: Record<Band, string> = {
   Strong: "The CV shares much of this job's distinctive wording and skills.",
   Moderate: 'The CV covers part of what this job asks for.',
-  Low: 'The CV and this job have little in common.',
+  Low: "The CV shares few of this job's distinctive words and skills.",
 }
 
 /** The band first with what it means, the fit rounded to 5%, a meter in the band's colour, the
