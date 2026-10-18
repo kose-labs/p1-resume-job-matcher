@@ -6,6 +6,10 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Semanu's end-of-project post draft (`docs/posts/p1-end-of-project-semanu.md`), with every number
+  traced to the repo or re-measured on 2026-10-18, and his keep / stop / try lines in the retro.
+
 ## [0.2.0] - 2026-10-18
 
 V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
