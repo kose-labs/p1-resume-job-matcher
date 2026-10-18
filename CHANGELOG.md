@@ -6,6 +6,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-18
+
+V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
+evaluation (`docs/evaluation.md`) and model card.
+
 ### Added
 - Frontend refresh for launch (Kobi): an intro that says what the page does in one line and three
   steps, with the privacy promise; numbered form steps and a Clear button; the result as a card

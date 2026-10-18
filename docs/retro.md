@@ -13,13 +13,14 @@ record.
 | ρ ≥ 0.55 for the shipped model | 0.553 on test (CI 0.39 to 0.71): met, only just; dev was 0.660 |
 | κ ≥ 0.6 between us | 0.785 calibration, 0.770 dev, 0.734 test |
 | Skills: precision ≥ 0.80, F1 ≥ 0.70 | 0.904 and 0.715 on test (0.3.1) |
-| Requirement-to-sentence evidence | *[fill in: shipped in #78, or moved to V1.1]* |
+| Requirement-to-sentence evidence | Moved to V1.1 (#79); #78 stays a draft, so the evidence target wasn't measured |
 | A calibrated percentage | An estimated fit from a curve fitted on dev, shown to 5% with bands (#80); 0.75 rating points of error on test |
 | Kickoff and build-note posts | Dropped for one end-of-project post each (decided 2026-10-17) |
 | Docker for local development | Native development; Docker only in CI and hosting |
-| Live in 10 days | *[fill in on launch day]* |
+| Live in 10 days | First live deploy on day 4 (2026-10-12, GitHub Pages + Render); `v0.2.0` released on day 10, 2026-10-18 |
 
-**By the numbers:** *[fill in on launch day: merged PRs, issues closed, commits by each of us]*.
+**By the numbers (before the launch PR):** 58 merged PRs (Kobi 33, Semanu 24, Dependabot 1), 22
+issues closed, 418 backend and 74 frontend tests at 100% coverage.
 
 ## Keep
 *What worked and should carry into P2.*

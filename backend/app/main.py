@@ -29,7 +29,7 @@ from app.observability import RequestLog, configure_logging, log_event
 from app.ratelimit import RateLimit, match_limiter
 from app.schemas import ErrorResponse, MatchResponse
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 # How many requests may extract and match at the same time (ADR-0005). Render Free has 0.1 CPU
 # and 512 MB, so more parallel work only queues on the CPU and adds to peak memory.
 MATCH_CONCURRENCY = int(os.getenv("MATCH_CONCURRENCY", "2"))

@@ -10,7 +10,7 @@
 | Frontend | https://kose-labs.github.io/p1-resume-job-matcher/ (GitHub Pages) | On every merge to `main` that touches `frontend/` |
 | API | https://p1-resume-job-matcher-api.onrender.com (Render Free, Frankfurt) | On every merge to `main`, after CI passes |
 | Health | `GET /health` → `{"status":"ok"}` | Render checks it; CI smoke-tests the image |
-| Version | `GET /api/v1/version` → `{"version":"0.1.0"}` | Shown in the page header |
+| Version | `GET /api/v1/version` → `{"version":"0.2.0"}` | Shown in the page header |
 | Logs | Render › service › **Logs** (one JSON line per request and per match) | Kept by Render, no CV or job text |
 
 **Limits the users meet:** 10 matches per minute per visitor (`429` with `Retry-After`), CVs up to
