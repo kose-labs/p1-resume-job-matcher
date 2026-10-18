@@ -214,7 +214,7 @@ render.yaml         Render Blueprint for the backend
 
 - **V1 (2026-10-18):** TF-IDF score shown as an estimated fit with bands, matched and missing
   skills, test-set results and failure analysis ([evaluation](docs/evaluation.md)), release
-  `v0.1.0`.
+  `v0.2.0`.
 - **Next (V2):** from the failure analysis, a seniority signal, skill coverage in the score,
   boilerplate removed before scoring, and synonyms for short forms ("DRF", "k8s"), all chosen on
   dev and checked on a fresh test set; then one CV against many jobs, DOCX and scanned CVs (OCR),
