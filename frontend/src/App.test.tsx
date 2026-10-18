@@ -196,7 +196,7 @@ describe('running a match', () => {
   it('sends the CV and job description, then shows the report', async () => {
     const fetchMock = fakeApi(() => Promise.resolve(json(RESULT)))
     render(<App />)
-    expect(screen.getByText(/Run a match to see the similarity score/)).toBeInTheDocument()
+    expect(screen.getByText('Your result will appear here')).toBeInTheDocument()
     fillForm()
     fireEvent.click(runButton())
 
@@ -261,6 +261,29 @@ describe('running a match', () => {
     fillForm()
     fireEvent.click(runButton())
     expect(await screen.findByRole('alert')).toHaveTextContent("Can't reach the server")
+  })
+})
+
+describe('page intro and clearing', () => {
+  it('says what the page does before anything is entered', () => {
+    fakeApi(() => Promise.resolve(json(RESULT)))
+    render(<App />)
+    expect(screen.getByRole('heading', { name: /See how well a CV fits a job/ })).toBeVisible()
+    expect(screen.getByText('Run the match')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
+  })
+
+  it('clears the form and the result', async () => {
+    fakeApi(() => Promise.resolve(json(RESULT)))
+    render(<App />)
+    fillForm()
+    fireEvent.click(runButton())
+    expect(await screen.findByText('≈ 45%')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    expect(screen.getByLabelText('Job description')).toHaveValue('')
+    expect(screen.queryByText('cv.pdf')).not.toBeInTheDocument()
+    expect(screen.getByText('Your result will appear here')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument()
   })
 })
 

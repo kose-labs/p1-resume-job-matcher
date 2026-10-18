@@ -1,11 +1,26 @@
 import type { MatchResponse } from '../../api/client'
-import { FIT_BANDS, FIT_STEP, fitPercent, scoreBand, shownFit } from '../../lib/scoreBands'
+import {
+  FIT_BANDS,
+  FIT_STEP,
+  fitPercent,
+  scoreBand,
+  shownFit,
+  type Band,
+} from '../../lib/scoreBands'
 import styles from './Results.module.css'
 
 // Plain names for the models the API reports.
 const METHODS: Record<string, string> = { 'tfidf-baseline': 'TF-IDF' }
 
-/** The band first, the estimated fit rounded to 5%, a flat meter, the raw similarity and a caveat. */
+// What each band means, in terms of what the score measures: shared wording and skills.
+const VERDICTS: Record<Band, string> = {
+  Strong: "The CV shares much of this job's distinctive wording and skills.",
+  Moderate: 'The CV covers part of what this job asks for.',
+  Low: 'The CV and this job have little in common.',
+}
+
+/** The band first with what it means, the fit rounded to 5%, a meter in the band's colour, the
+ * scale with the raw similarity, and a caveat. */
 export function ScoreSummary({ result }: { result: MatchResponse }) {
   const method = METHODS[result.model.name] ?? result.model.name
 
@@ -25,12 +40,13 @@ export function ScoreSummary({ result }: { result: MatchResponse }) {
   const fit = shownFit(result.score)
   const band = scoreBand(result.score)
   return (
-    <div className={styles.block}>
+    <div className={`${styles.block} ${styles.scoreCard}`} data-band={band.toLowerCase()}>
       <p className={styles.label}>Estimated fit · {method}</p>
       <p className={styles.valueRow}>
         <span className={styles.verdict}>{band} fit</span>
         <span className={styles.band}>≈ {fit}%</span>
       </p>
+      <p className={styles.summary}>{VERDICTS[band]}</p>
       <meter
         className={styles.meter}
         min={0}
