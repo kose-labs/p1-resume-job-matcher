@@ -24,17 +24,27 @@ issues closed, 418 backend and 74 frontend tests at 100% coverage.
 
 ## Keep
 *What worked and should carry into P2.*
-- Kobi:
+- Kobi: deciding on dev and running test once. We rated blind, on a page that never showed the
+  field, split or score (#66), and chose the model, bands and fit curve on 40 dev pairs, so the test
+  numbers can be trusted, including the uncomfortable ones (same-field ρ 0.24, 2 of 7 Strong pairs
+  shown Strong). Also, reading the worst pairs ourselves: the failure analysis gave us V2's first
+  four issues (#88–#91).
 - Semanu:
 
 ## Stop
 *What cost time or caused rework.*
-- Kobi:
+- Kobi: leaving the evaluation data to the end. The test ratings (#81, #82) and the skill labels
+  (#77) landed on day 9, so the test run, failure analysis, model card and launch design were all
+  squeezed into the last two days. And opening many PRs at once that all edit the CHANGELOG: on
+  days 7–9, four PRs (#60, #62–#64) needed re-approval only because the CHANGELOG had changed.
 - Semanu:
 
 ## Try
 *One or two changes for P2, each with an owner.*
-- Kobi:
+- Kobi (owner): build the evaluation set first. Rate the pairs and label the skills by day 4,
+  before comparing models, and include more strong pairs (we had only 7 of 80 on test), so
+  Strong-band accuracy rests on more than a handful. And one CHANGELOG file per PR, combined at
+  release, so parallel PRs stop conflicting.
 - Semanu:
 
 ## V2 ideas (captured as issues)

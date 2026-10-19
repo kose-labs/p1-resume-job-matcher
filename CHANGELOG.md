@@ -11,6 +11,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
   sample result (Open Graph and Twitter tags in `frontend/index.html`, `frontend/public/og-image.png`,
   made from the live site with the sample data by `scripts/demo/social_card.py`).
 
+### Changed
+- Kobi's end-of-project post is ready to publish: Semanu's three review notes applied (#87), the
+  credits match the launch roles, and the real links are in. Her keep / stop / try lines are in the
+  retro.
+
 ## [0.2.0] - 2026-10-18
 
 V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
