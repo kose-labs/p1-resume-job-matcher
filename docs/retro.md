@@ -25,17 +25,23 @@ issues closed, 418 backend and 74 frontend tests at 100% coverage.
 ## Keep
 *What worked and should carry into P2.*
 - Kobi:
-- Semanu:
+- Semanu: reviewing by reproducing. Rerunning the numbers and the app before approving caught the
+  band shown against the wrong percentage (#80) and the rollback that silently turns off auto-deploy
+  (#85). Also, testing on the real host: only Render could prove the rate limit tells visitors apart.
 
 ## Stop
 *What cost time or caused rework.*
 - Kobi:
-- Semanu:
+- Semanu: letting docs drift until launch. On release morning the README still said skills were
+  "being evaluated" and three ADRs were "proposed" (#99, #100). And starting overlapping work late:
+  we both began launch UI changes on day 9, and I stopped once Kobi took it.
 
 ## Try
 *One or two changes for P2, each with an owner.*
 - Kobi:
-- Semanu:
+- Semanu (owner): make docs move with the code. Add "README, ADRs and architecture updated?" to the
+  PR template, and agree on the release numbers and tags on day 1 (we only found the untagged 0.1.0
+  on launch day).
 
 ## V2 ideas (captured as issues)
 From the failure analysis in [evaluation.md](evaluation.md) and what we cut from V1:
