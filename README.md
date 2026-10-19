@@ -55,15 +55,31 @@ our own ratings of CV–job pairs, not against a feeling, and we publish the num
 ## Architecture
 
 ```mermaid
-flowchart LR
-    UI["React + Vite + TS<br/>GitHub Pages"] -->|"POST /api/v1/match<br/>cv.pdf + job_description"| MW
-    subgraph Render["Render Free · one container · 512 MB"]
-        MW["Middleware<br/>CORS · request log · rate limit · size limit"] --> EP["FastAPI endpoint"]
-        EP --> TH["Worker thread, max 2 at once<br/>PDF text → match"]
-        TH --> SVC["Match service<br/>loaded once at startup"]
+flowchart TB
+    GH["GitHub Actions<br/>CI on every PR"]
+    subgraph Browser["Browser · GitHub Pages"]
+        UI["Job description<br/>+ CV (PDF)"]
+        FIT["Band + estimated fit<br/>curve fitted on our ratings"]
     end
-    CI["GitHub Actions"] -->|"deploy on main"| UI
-    CI -.->|"checks pass → Render deploys"| Render
+    subgraph Render["Render Free · 512 MB"]
+        MW["Limits<br/>CORS · log · rate · size"]
+        subgraph TH["Worker thread, max 2"]
+            PDF["PDF → text in memory<br/>never stored"]
+            TF["TF-IDF score<br/>3,000 public job posts"]
+            SK["Skills matched / missing<br/>ESCO + tech dictionary"]
+        end
+        RES["JSON: raw score + skills"]
+    end
+    UI -->|"POST /api/v1/match"| MW --> PDF
+    PDF --> TF & SK
+    TF & SK --> RES
+    RES --> FIT
+    GH -.->|"publishes"| Browser
+    GH -.->|"checks pass → deploy"| Render
+    %% Group boxes without a fill, so no theme colour shows behind them, light or dark.
+    style Browser fill:none,stroke:#8b949e
+    style Render fill:none,stroke:#8b949e
+    style TH fill:none,stroke:#8b949e,stroke-dasharray:4 3
 ```
 
 The full request path, components, capacity and configuration are in

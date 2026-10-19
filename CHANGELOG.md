@@ -6,6 +6,12 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- The architecture diagrams in the README and `docs/architecture.md` read top to bottom, so GitHub
+  shows their text at about 14 px instead of 8 px in one long row. They now show the TF-IDF scorer,
+  the skill extractor, the response, and the estimated fit computed in the browser, and the group
+  boxes have no fill in either theme. The architecture page's summary describes V1 as shipped.
+
 ### Added
 - Link previews: shared links to the live site show the title, a description and an image of the
   sample result (Open Graph and Twitter tags in `frontend/index.html`, `frontend/public/og-image.png`,
