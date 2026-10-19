@@ -26,8 +26,8 @@ https://kose-labs.github.io/p1-resume-job-matcher/
 Skill extraction: 90% precision, F1 0.72 against hand labels.
 
 🔎 **The lesson: word overlap isn't fit.** On the held-out pairs, none of the embedding models did
-better than counting shared words, so we shipped the one that fits in 200 MB. But most of that 0.55
-comes from telling fields apart. Among CVs and jobs from the *same* field, ρ drops to 0.24. The
+better than counting shared words, so we shipped the small one that runs on a free 512 MB server.
+But most of that 0.55 comes from telling fields apart. Among CVs and jobs from the *same* field, ρ drops to 0.24. The
 biggest misses: a vague CV full of "cross-functional" and "agile" scored Strong for a DevOps job we
 both rated 1, and a six-year Java developer with a five-line CV scored low for a Java job we rated
 4. The page is good at saying "poor match", and weak at spotting strong matches written in other
@@ -62,7 +62,8 @@ Sebuava 🙌
   - "Refitted on 3,000 job posts", not "tuned": the only difference from the baseline is the corpus
     it was fitted on ([ADR-0006](../adr/0006-production-tfidf.md)), and its +0.018 is within noise.
   - "On the held-out pairs": on dev, bge-small whole was +0.010.
-- "Fits in 200 MB": peak 192 MB with 4 concurrent near-5 MB CVs (the CI memory check).
+- "Runs on a free 512 MB server": Render Free; the CI memory check peaks at 192 MB on Python 3.12
+  and 223 MB on 3.14 (#105) with 4 concurrent near-5 MB CVs, so the wording holds either way.
 - The credits match Semanu's post and the README contributors.
 - The GIF uses only the sample data and the fictional sample CV. No real CV or JD in any visual.
 - The live link shows a preview card (#102); check it in LinkedIn's Post Inspector before posting.
