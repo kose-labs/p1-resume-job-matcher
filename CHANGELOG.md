@@ -11,6 +11,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
   sample result (Open Graph and Twitter tags in `frontend/index.html`, `frontend/public/og-image.png`,
   made from the live site with the sample data by `scripts/demo/social_card.py`).
 
+### Changed
+- The backend runs on Python 3.14, in the Docker image, CI and local development together
+  (`backend/Dockerfile`, `backend/.python-version`), so the tests run on the version that serves.
+  Supersedes Dependabot's #72, which changed only the image.
+
 ## [0.2.0] - 2026-10-18
 
 V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
