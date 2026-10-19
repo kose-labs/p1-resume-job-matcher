@@ -6,18 +6,21 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Changed
-- The architecture diagrams in the README and `docs/architecture.md` read top to bottom, so GitHub
-  shows their text at about 14 px instead of 8 px in one long row. They now show the TF-IDF scorer,
-  the skill extractor, the response, and the estimated fit computed in the browser, and the group
-  boxes have no fill in either theme. The architecture page's summary describes V1 as shipped.
-
 ### Added
 - Link previews: shared links to the live site show the title, a description and an image of the
   sample result (Open Graph and Twitter tags in `frontend/index.html`, `frontend/public/og-image.png`,
   made from the live site with the sample data by `scripts/demo/social_card.py`).
 - Semanu's end-of-project post draft (`docs/posts/p1-end-of-project-semanu.md`), with every number
   traced to the repo or re-measured on 2026-10-18, and his keep / stop / try lines in the retro.
+
+### Changed
+- The architecture diagrams in the README and `docs/architecture.md` read top to bottom, so GitHub
+  shows their text at about 14 px instead of 8 px in one long row. They now show the TF-IDF scorer,
+  the skill extractor, the response, and the estimated fit computed in the browser, and the group
+  boxes have no fill in either theme. The architecture page's summary describes V1 as shipped.
+- Kobi's end-of-project post is ready to publish: Semanu's three review notes applied (#87), the
+  credits match the launch roles, and the real links are in. Her keep / stop / try lines are in the
+  retro.
 
 ## [0.2.0] - 2026-10-18
 
