@@ -7,6 +7,9 @@ and versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Link previews: shared links to the live site show the title, a description and an image of the
+  sample result (Open Graph and Twitter tags in `frontend/index.html`, `frontend/public/og-image.png`,
+  made from the live site with the sample data by `scripts/demo/social_card.py`).
 - Semanu's end-of-project post draft (`docs/posts/p1-end-of-project-semanu.md`), with every number
   traced to the repo or re-measured on 2026-10-18, and his keep / stop / try lines in the retro.
 
