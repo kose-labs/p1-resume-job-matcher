@@ -4,7 +4,7 @@ See how well a CV fits a job description, and why. CVs are processed in memory a
 
 [![CI](https://github.com/kose-labs/p1-resume-job-matcher/actions/workflows/ci.yml/badge.svg)](https://github.com/kose-labs/p1-resume-job-matcher/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
+![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)
 ![Node 24](https://img.shields.io/badge/node-24%20LTS-blue.svg)
 
 ## Demo
@@ -90,7 +90,7 @@ The full request path, components, capacity and configuration are in
 
 | Part | Tools |
 |---|---|
-| Backend | Python 3.12, FastAPI, pdfplumber, scikit-learn, uv |
+| Backend | Python 3.14, FastAPI, pdfplumber, scikit-learn, uv |
 | Frontend | React 19, TypeScript, Vite, CSS Modules with design tokens, IBM Plex (self-hosted) |
 | Contract | OpenAPI → generated TypeScript types; CI fails if they drift |
 | Quality | Ruff, mypy (strict), pytest; oxlint, Prettier, Vitest + Testing Library; pre-commit with gitleaks |
@@ -99,7 +99,7 @@ The full request path, components, capacity and configuration are in
 ## Getting started
 
 ### Prerequisites
-Python 3.12, [uv](https://docs.astral.sh/uv/), and Node 24 LTS (pinned in `frontend/.nvmrc`).
+Python 3.14, [uv](https://docs.astral.sh/uv/), and Node 24 LTS (pinned in `frontend/.nvmrc`).
 No Docker needed.
 
 ### Install and run locally

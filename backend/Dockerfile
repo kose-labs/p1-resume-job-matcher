@@ -1,5 +1,5 @@
 # Backend image. Built and smoke-tested in CI; also what Hugging Face Spaces builds.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /uvx /bin/
 

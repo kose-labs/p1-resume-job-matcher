@@ -19,6 +19,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Semanu's end-of-project post draft (`docs/posts/p1-end-of-project-semanu.md`), with every number
   traced to the repo or re-measured on 2026-10-18, and his keep / stop / try lines in the retro.
 
+### Changed
+- The backend runs on Python 3.14, in the Docker image, CI and local development together
+  (`backend/Dockerfile`, `backend/.python-version`), so the tests run on the version that serves.
+  Supersedes Dependabot's #72, which changed only the image.
+
 ## [0.2.0] - 2026-10-18
 
 V1 launch: the matcher, live at https://kose-labs.github.io/p1-resume-job-matcher/, with its
