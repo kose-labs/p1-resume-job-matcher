@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.1
       - name: Hooks (ruff, gitleaks secret scan, hygiene)
         env:
           # Already run by the backend and frontend jobs, with their environments installed.
@@ -31,7 +31,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.1
         with:
           enable-cache: true
       - run: uv sync --locked
@@ -100,7 +100,7 @@ jobs:
           docker run -d --name app --memory 512m -p 8000:8000 app-backend
           curl --fail --silent --show-error --retry 15 --retry-all-errors --retry-delay 2 \
             http://localhost:8000/health
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.1
         with:
           enable-cache: true
       - name: Memory under load (4 concurrent near-5 MB CVs, peak under 400 MB)
